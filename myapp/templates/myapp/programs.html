@@ -1,0 +1,604 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>Our Flagship Programs</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --ink3: #8A9ABE;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --bg3: #EBF0FA;
+            --border2: rgba(28, 46, 94, 0.16);
+            --card: #ffffff;
+            --sh: 0 4px 24px rgba(28, 46, 94, 0.10);
+            --r: 12px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; }
+        a { color: inherit; }
+
+        /* Global Header and Branded Navigation Bar */
+
+
+        /* General Section Layout Frames */
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .sec-head { text-align: center; margin-bottom: 60px; }
+        .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: .28em; color: var(--crimson); margin-bottom: 10px; }
+        .section-h { font-family: 'Inter', sans-serif; font-size: 3rem; font-weight: 700; color: var(--navy-deep); line-height: 0.95; margin-bottom: 20px; }
+        .lead { color: var(--ink2); font-size: 1rem; max-width: 650px; margin: 0 auto; }
+
+        /* Program Row-Stack Layouts */
+        .prog-stack { display: flex; flex-direction: column; gap: 90px; }
+        .prog { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .prog.flip { direction: rtl; }
+        .prog.flip > * { direction: ltr; }
+        @media(max-width: 900px) {
+            .prog, .prog.flip { grid-template-columns: 1fr; gap: 30px; direction: ltr; }
+            .prog.flip > * { direction: ltr; }
+        }
+
+        .prog-img { border-radius: 14px; overflow: hidden; aspect-ratio: 4/3; box-shadow: var(--sh); }
+        .prog-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        .prog-tag { font-size: 0.65rem; font-weight: 700; letter-spacing: .2em; color: var(--crimson); margin-bottom: 10px; display: block; }
+        .prog h3 { font-family: 'Inter', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--navy-deep); line-height: 1.1; margin-bottom: 15px; }
+        .prog p { color: var(--ink2); font-size: 0.95rem; margin-bottom: 20px; }
+
+        .prog-list { list-style: none; margin-bottom: 25px; }
+        .prog-list li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--ink2); margin-bottom: 8px; }
+        .prog-list li::before { content: "➔"; color: var(--navy); font-weight: 700; }
+
+        /* Date / cadence badge */
+        .date-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; color: var(--navy); background: var(--bg3); padding: 7px 16px; border-radius: 99px; margin-bottom: 16px; border: 1px solid var(--border2); }
+        .date-badge i { color: var(--crimson); }
+
+        /* Specialized Pill Badges */
+        .yvf-pill img { height: 70px; width: auto; }
+        .yvf-pill span { font-size: 0.65rem; font-weight: 700; letter-spacing: .1em; color: var(--ink3); }
+
+        /* Actions CTA Buttons */
+        .btn-action { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 99px; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
+        .btn-navy { background: var(--navy); color: #fff; }
+        .btn-navy:hover { background: var(--navy-deep); box-shadow: 0 4px 12px rgba(28, 46, 94, 0.2); }
+        .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+        .btn-outline:hover { background: var(--navy); color: #fff; }
+
+        /* Accordion components (Bootcamp / Outreach / Internship etc.) */
+        .prog-components { grid-column: 1 / -1; margin-top: 10px; }
+        .comp { border: 1px solid var(--border2); border-radius: var(--r); margin-bottom: 14px; background: var(--bg2); overflow: hidden; }
+        .comp summary { cursor: pointer; padding: 18px 22px; font-weight: 700; color: var(--navy-deep); font-size: 1rem; display: flex; justify-content: space-between; align-items: center; list-style: none; gap: 12px; }
+        .comp summary::-webkit-details-marker { display: none; }
+        .comp summary .plus { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: transform .2s ease; }
+        .comp[open] summary .plus { transform: rotate(45deg); }
+        .comp-body { padding: 0 22px 22px; color: var(--ink2); font-size: 0.9rem; }
+        .comp-body .sub-label { font-size: 0.72rem; font-weight: 700; letter-spacing: .12em; color: var(--crimson); text-transform: uppercase; margin: 14px 0 8px; }
+        .comp-body .sub-label:first-child { margin-top: 0; }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+        .chip { background: #fff; color: var(--navy); font-size: 0.78rem; font-weight: 600; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--border2); }
+        .comp-meta { font-size: 0.85rem; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+
+        /* Career Development Programs — full width tabbed section */
+        .cdp-section { grid-column: 1 / -1; }
+        .cdp-tabs { display: flex; gap: 10px; margin: 8px 0 28px; flex-wrap: wrap; }
+        .cdp-tab-btn { padding: 11px 22px; border-radius: 99px; border: 1.5px solid var(--border2); background: #fff; font-weight: 700; font-size: 0.85rem; color: var(--navy); cursor: pointer; font-family: inherit; }
+        .cdp-tab-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+        .cdp-panel { display: none; }
+        .cdp-panel.active { display: block; }
+        .cdp-panel h4 { font-size: 1.4rem; color: var(--navy-deep); margin-bottom: 6px; }
+        .cdp-panel > p.intro { color: var(--ink2); font-size: 0.92rem; margin-bottom: 22px; max-width: 700px; }
+
+        .course-table-wrap { overflow-x: auto; margin: 10px 0 24px; border-radius: var(--r); border: 1px solid var(--border2); box-shadow: var(--sh); }
+        table.course-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 640px; }
+        table.course-table caption { text-align: left; padding: 14px 18px; font-weight: 700; color: var(--navy-deep); background: var(--bg2); font-size: 0.95rem; }
+        table.course-table th { background: var(--navy); color: #fff; text-align: left; padding: 12px 16px; font-weight: 700; font-size: 0.78rem; letter-spacing: .03em; }
+        table.course-table td { padding: 12px 16px; border-bottom: 1px solid var(--border2); color: var(--ink2); vertical-align: top; }
+        table.course-table tr:last-child td { border-bottom: none; }
+        table.course-table tbody tr:nth-child(even) { background: var(--bg2); }
+        .price-tag { font-weight: 700; color: var(--crimson); white-space: nowrap; }
+        .sn-col { color: var(--ink3); font-weight: 600; width: 34px; }
+
+        .mode-note { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 28px; }
+        .mode-note .chip { background: var(--bg3); }
+
+        .location-note { display: flex; align-items: center; gap: 8px; color: var(--ink2); font-size: 0.88rem; margin: 22px 0; font-weight: 600; }
+        .location-note i { color: var(--crimson); }
+
+        .cdp-cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+
+        @media(max-width: 600px) {
+            .cdp-tabs { flex-direction: column; }
+        }
+
+        /* Quick navigation between program categories */
+        .quick-nav { position: sticky; top: 0; z-index: 30; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; background: rgba(255,255,255,.92); backdrop-filter: blur(6px); padding: 12px 16px; margin: -20px auto 54px; border-radius: 99px; border: 1px solid var(--border2); box-shadow: var(--sh); width: fit-content; }
+        .quick-nav a { padding: 9px 18px; border-radius: 99px; font-size: 0.82rem; font-weight: 700; color: var(--ink2); text-decoration: none; transition: all .2s ease; white-space: nowrap; }
+        .quick-nav a:hover { background: var(--bg3); color: var(--navy); }
+        .quick-nav a.active { background: var(--navy); color: #fff; }
+        @media(max-width: 700px) { .quick-nav { position: static; margin: 0 auto 40px; width: 100%; overflow-x: auto; justify-content: flex-start; border-radius: 14px; } }
+
+        /* Category shells — visually separate each flagship program */
+        .prog-shell { position: relative; padding: 44px 44px 50px; border-radius: 20px; border: 1px solid var(--border2); scroll-margin-top: 90px; }
+        .prog-shell.cat-yvf { background: linear-gradient(180deg, rgba(28,46,94,.045), rgba(255,255,255,0) 45%); border-top: 4px solid var(--navy); }
+        .prog-shell.cat-ivd { background: linear-gradient(180deg, rgba(165,28,48,.045), rgba(255,255,255,0) 45%); border-top: 4px solid var(--crimson); }
+        .prog-shell.cat-cdp { background: linear-gradient(180deg, rgba(245,195,0,.07), rgba(255,255,255,0) 45%); border-top: 4px solid var(--gold); }
+        @media(max-width: 600px) { .prog-shell { padding: 30px 20px 36px; } }
+
+        .prog-category-head { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; }
+        .cat-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .cat-yvf .cat-icon { background: var(--navy); color: #fff; }
+        .cat-ivd .cat-icon { background: var(--crimson); color: #fff; }
+        .cat-cdp .cat-icon { background: var(--gold); color: var(--navy-deep); }
+        .cat-label { font-size: 0.72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); display: block; margin-bottom: 3px; }
+        .cat-index { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--ink3); }
+
+        /* ===== Modern Visual System: motion, gradients, texture ===== */
+        body { background-image: radial-gradient(circle, rgba(28,46,94,0.05) 1px, transparent 1px); background-size: 24px 24px; }
+
+        .grad-text { background: linear-gradient(100deg, var(--navy) 0%, var(--crimson) 55%, var(--gold) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+        .hero-wrap { position: relative; overflow: hidden; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .30; pointer-events: none; z-index: 0; }
+        .blob-navy { background: var(--navy); width: 420px; height: 420px; top: -180px; left: -140px; }
+        .blob-crimson { background: var(--crimson); width: 320px; height: 320px; top: -100px; right: -110px; animation-delay: -5s; }
+        .blob-gold { background: var(--gold); width: 260px; height: 260px; bottom: -160px; left: 42%; animation-delay: -2.5s; }
+        .sec-head { position: relative; z-index: 1; }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .blob { animation: floatBlob 15s ease-in-out infinite; }
+            @keyframes floatBlob { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(22px,-26px) scale(1.07); } }
+            .reveal { opacity: 0; transform: translateY(26px); transition: opacity .6s cubic-bezier(.16,.84,.44,1), transform .6s cubic-bezier(.16,.84,.44,1); }
+            .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { opacity: 1; transform: none; }
+        }
+
+        .btn-action { position: relative; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+        .btn-action:hover { transform: translateY(-3px); }
+        .btn-action .arrow { display: inline-block; transition: transform .2s ease; }
+        .btn-action:hover .arrow { transform: translateX(4px); }
+
+        .prog-img { position: relative; }
+        .prog-img img { transition: transform .5s cubic-bezier(.16,.84,.44,1); }
+        .prog-img:hover img { transform: scale(1.06); }
+
+        .prog-shell { transition: box-shadow .3s ease, transform .3s ease; }
+        .prog-shell:hover { box-shadow: 0 18px 50px rgba(28,46,94,.12); }
+
+        .comp { transition: border-color .2s ease, transform .2s ease; }
+        .comp:hover { border-color: var(--navy); }
+        .chip { transition: transform .15s ease, background .15s ease, color .15s ease; }
+        .chip:hover { transform: translateY(-2px); background: var(--navy); color: #fff; border-color: var(--navy); }
+
+        .cdp-tab-btn { position: relative; transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+        .cdp-tab-btn:hover { transform: translateY(-2px); }
+        .cdp-panel { animation: fadeTab .35s cubic-bezier(.16,.84,.44,1); }
+        @keyframes fadeTab { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        table.course-table tbody tr { transition: background .2s ease; }
+        table.course-table tbody tr:hover { background: var(--bg3) !important; }
+
+        .quick-nav { position: sticky; }
+        .quick-nav-indicator { position: absolute; top: 6px; bottom: 6px; left: 0; border-radius: 99px; background: var(--navy); z-index: 0; transition: transform .3s cubic-bezier(.16,.84,.44,1), width .3s cubic-bezier(.16,.84,.44,1); }
+        .quick-nav a { position: relative; z-index: 1; transition: color .2s ease; }
+        .quick-nav a.active { background: transparent; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- Unified Navigation Header Module -->
+
+
+    <!-- Programs Canvas Grid Block Framework -->
+    <main class="container">
+        <div class="hero-wrap">
+            <span class="blob blob-navy" aria-hidden="true"></span>
+            <span class="blob blob-crimson" aria-hidden="true"></span>
+            <span class="blob blob-gold" aria-hidden="true"></span>
+            <div class="sec-head">
+                <p class="eyebrow reveal">What We Do</p>
+                <h2 class="section-h reveal">Our <span class="grad-text">Flagship</span> Programs</h2>
+                <p class="lead reveal">From comprehensive leadership workshops to strategic corporate readiness and volunteer setups — our frameworks drive lasting structural change.</p>
+            </div>
+        </div>
+
+        <nav class="quick-nav" aria-label="Jump to program category">
+            <span class="quick-nav-indicator" id="navIndicator" aria-hidden="true"></span>
+            <a href="#yvf" data-section="yvf" class="active">Youth Volunteers Forum</a>
+            <a href="#ivd" data-section="ivd">International Volunteer Day</a>
+            <a href="#cdp" data-section="cdp">Career Development</a>
+        </nav>
+
+        <div class="prog-stack">
+
+            <section class="prog-shell cat-yvf reveal" id="yvf">
+                <div class="prog-category-head">
+                    <span class="cat-icon" aria-hidden="true"><i class="fa-solid fa-people-group"></i></span>
+                    <div>
+                        <span class="cat-label">Category 1 of 3 &middot; Leadership &amp; Volunteerism</span>
+                        <span class="cat-index">Youth Volunteers Forum</span>
+                    </div>
+                </div>
+
+                <!-- Program 1: Youth Volunteers Forum -->
+                <div class="prog">
+                <div class="prog-img">
+                    <img src="{% static 'myapp/DSC_5413_BinSeif.jpg' %}" alt="Youth Volunteers Forum bootcamp participants working together on a community project">
+                </div>
+                <div>
+                    <div class="yvf-pill">
+                        <img src="{% static 'myapp/YVF LOGO.png' %}" alt="Youth Volunteers Forum logo badge">
+                    </div>
+                    <span class="prog-tag">Leadership &amp; Volunteerism</span>
+                    <h3>Youth Volunteers Forum (YVF)</h3>
+                    <span class="date-badge"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Annual Bootcamp · Every 16–20 October</span>
+                    <p>The Youth Volunteers Forum (YVF) is an international leadership and volunteerism bootcamp that equips young people with leadership, employability and community development skills. The theme changes every year.</p>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdo8Yxs9CeM0T4VAjDcoIpLDPR1yaA7YoUDxbDtTVIftS6LgA/viewform" class="btn-action btn-navy">Apply For YVF Cohort 6 (2027) <span class="arrow">&rarr;</span></a>
+                </div>
+
+                <div class="prog-components">
+                    <details class="comp" open>
+                        <summary>A. Capacity Building Bootcamp <span class="plus" aria-hidden="true">+</span></summary>
+                        <div class="comp-body">
+                            <p>Topics include:</p>
+                            <div class="chip-row" style="margin-top:10px;">
+                                <span class="chip">Leadership Development</span>
+                                <span class="chip">Public Speaking</span>
+                                <span class="chip">Project Management</span>
+                                <span class="chip">Climate Action</span>
+                                <span class="chip">SDGs</span>
+                                <span class="chip">Community Development</span>
+                                <span class="chip">Social Entrepreneurship</span>
+                                <span class="chip">Innovation</span>
+                                <span class="chip">Advocacy</span>
+                                <span class="chip">Volunteerism</span>
+                                <span class="chip">Team Building</span>
+                            </div>
+                        </div>
+                    </details>
+                    <details class="comp">
+                        <summary>B. Community Outreach <span class="plus" aria-hidden="true">+</span></summary>
+                        <div class="comp-body">
+                            <p>Volunteers implement a real community project. Examples:</p>
+                            <div class="chip-row" style="margin-top:10px;">
+                                <span class="chip">School Support</span>
+                                <span class="chip">Tree Planting</span>
+                                <span class="chip">Road Safety Campaign</span>
+                                <span class="chip">Orphanage Support</span>
+                                <span class="chip">Beach Cleaning</span>
+                                <span class="chip">Health Awareness</span>
+                                <span class="chip">Disability Inclusion</span>
+                            </div>
+                        </div>
+                    </details>
+                    <details class="comp">
+                        <summary>C. Internship Program <span class="plus" aria-hidden="true">+</span></summary>
+                        <div class="comp-body">
+                            <p class="comp-meta">Duration: 1–3 Months</p>
+                            <p class="sub-label">Placement Areas</p>
+                            <div class="chip-row">
+                                <span class="chip">NGOs</span>
+                                <span class="chip">Companies</span>
+                                <span class="chip">Government Institutions</span>
+                                <span class="chip">Schools</span>
+                                <span class="chip">Social Enterprises</span>
+                            </div>
+                            <p class="sub-label">Benefits</p>
+                            <div class="chip-row">
+                                <span class="chip">Certificate</span>
+                                <span class="chip">Recommendation Letter</span>
+                                <span class="chip">Career Mentorship</span>
+                                <span class="chip">Networking</span>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            </section>
+
+            <section class="prog-shell cat-ivd reveal" id="ivd">
+                <div class="prog-category-head">
+                    <span class="cat-icon" aria-hidden="true"><i class="fa-solid fa-hand-holding-heart"></i></span>
+                    <div>
+                        <span class="cat-label">Category 2 of 3 &middot; National Celebration</span>
+                        <span class="cat-index">International Volunteer Day</span>
+                    </div>
+                </div>
+
+                <!-- Program 2: International Volunteer Day -->
+                <div class="prog flip">
+                <div class="prog-img">
+                    <img src="{% static 'myapp/DSC_2216_BinSeif.jpg.jpeg' %}" alt="Volunteers taking part in International Volunteer Day community outreach activities">
+                </div>
+                <div>
+                    <span class="prog-tag">International Volunteer Day (IVD)</span>
+                    <h3>International Volunteer Day (IVD)</h3>
+                    <span class="date-badge"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Every 5 December</span>
+                    <p>A two-day national celebration of volunteerism that brings changemakers together for inspiration, networking and hands-on community outreach across Zanzibar.</p>
+                    <a href="{% url 'request' %}" class="btn-action btn-navy">Register For IVD 2026 <span class="arrow">&rarr;</span></a>
+                </div>
+
+                <div class="prog-components">
+                    <details class="comp" open>
+                        <summary>Day 1 — Volunteer Networking Bootcamp <span class="plus" aria-hidden="true">+</span></summary>
+                        <div class="comp-body">
+                            <p>Activities:</p>
+                            <div class="chip-row" style="margin-top:10px;">
+                                <span class="chip">Inspirational Talks</span>
+                                <span class="chip">Panel Discussions</span>
+                                <span class="chip">Networking</span>
+                                <span class="chip">Volunteer Fair</span>
+                            </div>
+                        </div>
+                    </details>
+                    <details class="comp">
+                        <summary>Day 2 — Community Outreach <span class="plus" aria-hidden="true">+</span></summary>
+                        <div class="comp-body">
+                            <p>Examples:</p>
+                            <div class="chip-row" style="margin-top:10px;">
+                                <span class="chip">Blood Donation</span>
+                                <span class="chip">Tree Planting</span>
+                                <span class="chip">School Renovation</span>
+                                <span class="chip">Food Distribution</span>
+                                <span class="chip">Hospital Visits</span>
+                                <span class="chip">Disability Support</span>
+                                <span class="chip">Environmental Campaigns</span>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            </section>
+
+            <section class="prog-shell cat-cdp reveal" id="cdp">
+                <div class="prog-category-head">
+                    <span class="cat-icon" aria-hidden="true"><i class="fa-solid fa-briefcase"></i></span>
+                    <div>
+                        <span class="cat-label">Category 3 of 3 &middot; Career Readiness</span>
+                        <span class="cat-index">Career Development Programs</span>
+                    </div>
+                </div>
+
+                <!-- Program 3: Career Development Programs -->
+                <div class="prog">
+                <div class="cdp-section" style="grid-column:1/-1;">
+                    <span class="prog-tag">Career Development Programs</span>
+                    <h3>Career Development Programs</h3>
+                    <p style="max-width:700px;">Bridging the transitional ecosystem between academic landscapes and corporate professional settings — practical, affordable courses for job seekers and working professionals alike.</p>
+
+                    <div class="cdp-tabs" role="tablist" aria-label="Career Development Programs">
+                        <button type="button" class="cdp-tab-btn active" role="tab" aria-selected="true" aria-controls="panel-ssa" id="tab-ssa" data-target="panel-ssa">A. Soft Skills Academy</button>
+                        <button type="button" class="cdp-tab-btn" role="tab" aria-selected="false" aria-controls="panel-cc" id="tab-cc" data-target="panel-cc">B. Career Club</button>
+                    </div>
+
+                    <!-- Panel A: Soft Skills Academy -->
+                    <div class="cdp-panel active" id="panel-ssa" role="tabpanel" aria-labelledby="tab-ssa">
+                        <h4>Soft Skills Academy</h4>
+                        <p class="intro">Helping graduates become employment-ready with practical, one-day and short-format courses.</p>
+
+                        <div class="course-table-wrap">
+                            <table class="course-table">
+                                <caption>Soft Skills Academy — Course Catalogue</caption>
+                                <thead>
+                                    <tr><th class="sn-col">S/N</th><th>Course Title</th><th>Duration</th><th>Mode</th><th>Price (TZS)</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="sn-col">1</td><td>The Art of Writing a Winning CV</td><td>1 Day</td><td>Classroom / One-on-One / Online</td><td class="price-tag">20,000</td></tr>
+                                    <tr><td class="sn-col">2</td><td>Mastering Cover Letters That Get Interviews</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">20,000</td></tr>
+                                    <tr><td class="sn-col">3</td><td>Advanced Job Search &amp; Application Strategies</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">25,000</td></tr>
+                                    <tr><td class="sn-col">4</td><td>Ace the Interview: Interview Preparation Masterclass</td><td>1 Day</td><td>Classroom / One-on-One</td><td class="price-tag">35,000</td></tr>
+                                    <tr><td class="sn-col">5</td><td>Professional Workplace Communication Excellence</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">30,000</td></tr>
+                                    <tr><td class="sn-col">6</td><td>Build a Powerful LinkedIn Profile &amp; Personal Brand</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">30,000</td></tr>
+                                    <tr><td class="sn-col">7</td><td>Personal Branding for Future Leaders</td><td>1 Day</td><td>Classroom</td><td class="price-tag">35,000</td></tr>
+                                    <tr><td class="sn-col">8</td><td>The Art of Public Speaking &amp; Confident Presentations</td><td>2 Days</td><td>Classroom</td><td class="price-tag">45,000</td></tr>
+                                    <tr><td class="sn-col">9</td><td>Strategic Networking for Career Success</td><td>1 Day</td><td>Classroom</td><td class="price-tag">30,000</td></tr>
+                                    <tr><td class="sn-col">10</td><td>Productivity, Time Management &amp; Personal Effectiveness</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">25,000</td></tr>
+                                    <tr><td class="sn-col">11</td><td>Microsoft Office Professional Bootcamp (Word, Excel &amp; PowerPoint)</td><td>3 Days</td><td>Classroom</td><td class="price-tag">75,000</td></tr>
+                                    <tr><td class="sn-col">12</td><td>Business Email Writing &amp; Workplace Etiquette</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">30,000</td></tr>
+                                    <tr><td class="sn-col">13</td><td>Artificial Intelligence (AI) for Job Seekers &amp; Professionals</td><td>1 Day</td><td>Classroom</td><td class="price-tag">40,000</td></tr>
+                                    <tr><td class="sn-col">14</td><td>Digital Skills for the Modern Workplace</td><td>2 Days</td><td>Classroom</td><td class="price-tag">60,000</td></tr>
+                                    <tr><td class="sn-col">15</td><td>Critical Thinking &amp; Problem-Solving in the Workplace</td><td>1 Day</td><td>Classroom</td><td class="price-tag">35,000</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="sub-label" style="color:var(--crimson);">Mode</p>
+                        <div class="mode-note">
+                            <span class="chip">Physical Classroom</span>
+                            <span class="chip">One-on-One Coaching</span>
+                            <span class="chip">Online Sessions</span>
+                        </div>
+
+                        <div class="cdp-cta-row">
+                            <a href="{% url 'request' %}" class="btn-action btn-navy">Register Now <span class="arrow">&rarr;</span></a>
+                        </div>
+                    </div>
+
+                    <!-- Panel B: Career Club -->
+                    <div class="cdp-panel" id="panel-cc" role="tabpanel" aria-labelledby="tab-cc">
+                        <h4>Career Club</h4>
+                        <p class="intro">For employed professionals, entrepreneurs and NGO staff looking to sharpen leadership, strategy and workplace skills.</p>
+
+                        <div class="course-table-wrap">
+                            <table class="course-table">
+                                <caption>Career Club — Course Catalogue</caption>
+                                <thead>
+                                    <tr><th class="sn-col">S/N</th><th>Course Title</th><th>Duration</th><th>Mode</th><th>Price (TZS)</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="sn-col">1</td><td>The Art of Professional Report Writing</td><td>1 Day</td><td>Classroom / Online</td><td class="price-tag">45,000</td></tr>
+                                    <tr><td class="sn-col">2</td><td>Mastering Minutes Taking &amp; Meeting Documentation</td><td>1 Day</td><td>Classroom</td><td class="price-tag">35,000</td></tr>
+                                    <tr><td class="sn-col">3</td><td>Advanced Proposal &amp; Concept Note Writing</td><td>2 Days</td><td>Classroom</td><td class="price-tag">90,000</td></tr>
+                                    <tr><td class="sn-col">4</td><td>Strategic Budget Planning &amp; Financial Management</td><td>2 Days</td><td>Classroom</td><td class="price-tag">90,000</td></tr>
+                                    <tr><td class="sn-col">5</td><td>Monitoring, Evaluation, Accountability &amp; Learning (MEAL) Essentials</td><td>2 Days</td><td>Classroom</td><td class="price-tag">100,000</td></tr>
+                                    <tr><td class="sn-col">6</td><td>Project Management Professional Bootcamp</td><td>3 Days</td><td>Classroom</td><td class="price-tag">130,000</td></tr>
+                                    <tr><td class="sn-col">7</td><td>Leadership Excellence for Managers &amp; Supervisors</td><td>2 Days</td><td>Classroom</td><td class="price-tag">90,000</td></tr>
+                                    <tr><td class="sn-col">8</td><td>Strategic Planning &amp; Organizational Performance</td><td>2 Days</td><td>Classroom</td><td class="price-tag">100,000</td></tr>
+                                    <tr><td class="sn-col">9</td><td>The Art of Managing High-Performing Teams</td><td>2 Days</td><td>Classroom</td><td class="price-tag">85,000</td></tr>
+                                    <tr><td class="sn-col">10</td><td>AI Tools for Workplace Productivity &amp; Automation</td><td>1 Day</td><td>Classroom</td><td class="price-tag">60,000</td></tr>
+                                    <tr><td class="sn-col">11</td><td>Policy Analysis &amp; Policy Brief Writing Masterclass</td><td>2 Days</td><td>Classroom</td><td class="price-tag">85,000</td></tr>
+                                    <tr><td class="sn-col">12</td><td>Executive Presentation &amp; Facilitation Skills</td><td>1 Day</td><td>Classroom</td><td class="price-tag">50,000</td></tr>
+                                    <tr><td class="sn-col">13</td><td>Grant Writing &amp; Resource Mobilization Strategies</td><td>2 Days</td><td>Classroom</td><td class="price-tag">100,000</td></tr>
+                                    <tr><td class="sn-col">14</td><td>Event Planning &amp; Protocol Management</td><td>1 Day</td><td>Classroom</td><td class="price-tag">50,000</td></tr>
+                                    <tr><td class="sn-col">15</td><td>Corporate Communication &amp; Stakeholder Engagement</td><td>2 Days</td><td>Classroom</td><td class="price-tag">80,000</td></tr>
+                                    <tr><td class="sn-col">16</td><td>Negotiation &amp; Conflict Resolution in the Workplace</td><td>1 Day</td><td>Classroom</td><td class="price-tag">60,000</td></tr>
+                                    <tr><td class="sn-col">17</td><td>Data Analysis &amp; Visualization using Microsoft Excel</td><td>2 Days</td><td>Classroom</td><td class="price-tag">80,000</td></tr>
+                                    <tr><td class="sn-col">18</td><td>Professional Leadership Coaching &amp; Mentorship Skills</td><td>2 Days</td><td>Classroom</td><td class="price-tag">90,000</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="font-size:1.1rem; margin-top:30px;">Career Club Networking Events <span style="font-weight:600; color:var(--ink2); font-size:0.75rem;">(Monthly)</span></h4>
+                        <div class="course-table-wrap">
+                            <table class="course-table events-table">
+                                <thead><tr><th>Event</th><th style="text-align:right;">Price (TZS)</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Movie Night (Leadership Films)</td><td class="price-tag" style="text-align:right;">15,000</td></tr>
+                                    <tr><td>CEO Fireside Chat</td><td class="price-tag" style="text-align:right;">20,000</td></tr>
+                                    <tr><td>Career Networking Evening</td><td class="price-tag" style="text-align:right;">25,000</td></tr>
+                                    <tr><td>HR Dialogue Sessions</td><td class="price-tag" style="text-align:right;">20,000</td></tr>
+                                    <tr><td>Policy Dialogue Series</td><td class="price-tag" style="text-align:right;">20,000</td></tr>
+                                    <tr><td>Breakfast Networking</td><td class="price-tag" style="text-align:right;">25,000</td></tr>
+                                    <tr><td>Innovation Pitch Night</td><td class="price-tag" style="text-align:right;">15,000</td></tr>
+                                    <tr><td>Book Review Sessions</td><td class="price-tag" style="text-align:right;">Free</td></tr>
+                                    <tr><td>Alumni Meet-up</td><td class="price-tag" style="text-align:right;">10,000</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="location-note"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> KC Business Hub, Maungani, Zanzibar</p>
+
+                        <div class="cdp-cta-row">
+                            <a href="{% url 'request' %}" class="btn-action btn-navy">Register Online <span class="arrow">&rarr;</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </section>
+
+            <section class="prog-shell reveal" style="margin-top:60px;">
+                <div class="sec-head" style="grid-column:1/-1;">
+                    <p class="eyebrow">Live From Database</p>
+                    <h2 class="section-h">Active Programs</h2>
+                </div>
+                <div id="programsContainer" style="grid-column:1/-1;">
+                    <p style="color:var(--ink2);">Loading programs...</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+    <script>
+        (async function () {
+            try {
+                var res = await fetch('/api/programs/');
+                if (!res.ok) return;
+                var data = await res.json();
+                var programs = data.results || data;
+                var container = document.getElementById('programsContainer');
+                if (!programs || !programs.length) { container.innerHTML = '<p style="color:var(--ink2);">No programs available yet.</p>'; return; }
+                container.innerHTML = programs.map(function (p) {
+                    return '<div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:24px;margin-bottom:16px;box-shadow:var(--sh);">'
+                        + '<h3 style="font-size:1.3rem;font-weight:700;color:var(--navy-deep);margin-bottom:6px;">' + p.name + '</h3>'
+                        + '<p style="color:var(--ink2);font-size:0.9rem;margin-bottom:10px;">' + (p.short_description || '') + '</p>'
+                        + '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.8rem;">'
+                        + '<span style="background:var(--bg2);padding:4px 10px;border-radius:20px;color:var(--navy);font-weight:600;">' + p.category.replace(/_/g,' ') + '</span>'
+                        + '<span style="background:var(--bg2);padding:4px 10px;border-radius:20px;color:var(--navy);font-weight:600;">' + p.status + '</span>'
+                        + '<span style="background:var(--bg2);padding:4px 10px;border-radius:20px;color:var(--navy);font-weight:600;">' + (p.applications_count || 0) + ' applicants</span>'
+                        + '</div></div>';
+                }).join('');
+            } catch (e) {}
+        })();
+    </script>
+    <script>
+        (function () {
+            var tabs = document.querySelectorAll('.cdp-tab-btn');
+            tabs.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    tabs.forEach(function (b) {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-selected', 'false');
+                    });
+                    document.querySelectorAll('.cdp-panel').forEach(function (p) { p.classList.remove('active'); });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-selected', 'true');
+                    document.getElementById(btn.dataset.target).classList.add('active');
+                });
+            });
+        })();
+
+        (function () {
+            var links = document.querySelectorAll('.quick-nav a');
+            var sections = Array.prototype.map.call(links, function (l) {
+                return document.getElementById(l.dataset.section);
+            }).filter(Boolean);
+            if (!sections.length) return;
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    var link = document.querySelector('.quick-nav a[data-section="' + entry.target.id + '"]');
+                    if (!link) return;
+                    if (entry.isIntersecting) {
+                        links.forEach(function (l) { l.classList.remove('active'); });
+                        link.classList.add('active');
+                    }
+                });
+            }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+            sections.forEach(function (s) { observer.observe(s); });
+
+            var nav = document.querySelector('.quick-nav');
+            var indicator = document.getElementById('navIndicator');
+            function moveIndicator(link) {
+                if (!link || !indicator || !nav) return;
+                var navRect = nav.getBoundingClientRect();
+                var linkRect = link.getBoundingClientRect();
+                indicator.style.width = linkRect.width + 'px';
+                indicator.style.transform = 'translateX(' + (linkRect.left - navRect.left) + 'px)';
+            }
+            var mo = new MutationObserver(function () {
+                moveIndicator(document.querySelector('.quick-nav a.active'));
+            });
+            links.forEach(function (l) { mo.observe(l, { attributes: true, attributeFilter: ['class'] }); });
+            window.addEventListener('resize', function () { moveIndicator(document.querySelector('.quick-nav a.active')); });
+            setTimeout(function () { moveIndicator(document.querySelector('.quick-nav a.active')); }, 60);
+
+            var revealEls = document.querySelectorAll('.reveal');
+            if ('IntersectionObserver' in window) {
+                var rio = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            rio.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+                revealEls.forEach(function (el, i) {
+                    el.style.transitionDelay = (Math.min(i, 4) * 70) + 'ms';
+                    rio.observe(el);
+                });
+            } else {
+                revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+            }
+        })();
+    </script>
+</body>
+</html>

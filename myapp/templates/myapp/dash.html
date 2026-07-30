@@ -1,0 +1,815 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>My Dashboard — Zanchangemakers</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --ink3: #8A9ABE;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --border: rgba(28, 46, 94, 0.09);
+            --border2: rgba(28, 46, 94, 0.16);
+            --card: #ffffff;
+            --r: 12px;
+            --sh: 0 4px 24px rgba(28, 46, 94, 0.10);
+            --sh-lg: 0 12px 48px rgba(28, 46, 94, 0.14);
+            --form-bg: #E1EDF7;
+            --text-purple: #6A1B51;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg2); color: var(--ink); line-height: 1.6; }
+
+        /* ===== Page Shell ===== */
+        .dash-hero {
+            background: linear-gradient(120deg, var(--navy-deep), var(--navy));
+            padding: 38px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .dash-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 85% 20%, rgba(245,195,0,0.12), transparent 55%);
+        }
+        .dash-hero-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+        .dash-welcome { display: flex; align-items: center; gap: 16px; }
+        .dash-avatar {
+            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+
+        }
+        .dash-welcome h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.7rem; font-weight: 700; color:  rgba(255,255,255,0.6); 
+        }
+        .dash-welcome p { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 2px; }
+        .dash-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+        .dstat {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            padding: 10px 18px;
+            text-align: center;
+            min-width: 90px;
+        }
+        .dstat strong { display: block; font-family: 'Inter', sans-serif; font-size: 1.5rem; color: var(--gold); font-weight: 700; }
+        .dstat span { font-size: 0.68rem; color: rgba(255,255,255,0.55); letter-spacing: 0.4px; }
+
+        /* ===== Tabs ===== */
+        .dash-tabs {
+            max-width: 1280px; margin: 0 auto; padding: 0 24px;
+            display: flex; gap: 6px; position: relative; z-index: 1;
+            overflow-x: auto;
+        }
+        .dash-tab-btn {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.65);
+            font-family: inherit; font-weight: 600; font-size: 0.85rem;
+            padding: 12px 22px; border-radius: 8px 8px 0 0;
+            cursor: pointer; white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s;
+            border-bottom: none;
+        }
+        .dash-tab-btn:hover { color: var(--white); background: rgba(255,255,255,0.12); }
+        .dash-tab-btn.active { background: var(--bg2); color: var(--navy); }
+        .dash-tab-btn.active i { color: var(--crimson); }
+
+        .dash-main { max-width: 1280px; margin: 0 auto; padding: 36px 24px 80px; }
+        .dash-panel { display: none; }
+        .dash-panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .panel-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .panel-head h2 { font-family: 'Inter', sans-serif; font-size: 1.9rem; color: var(--navy);    font-weight: 700; }
+        .panel-head p { color: var(--ink2); font-size: 0.88rem; margin-top: 4px; }
+
+        .btn-sm {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px; border-radius: 6px; border: none;
+            font-weight: 700; font-size: 0.8rem; cursor: pointer;
+               letter-spacing: 0.4px;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .btn { display: flex; gap: 8px; margin-top: auto; background: var(--form-bg); color: var(--white); font-weight: 700; font-size: 0.88rem; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        .btn-navy { background: var(--form-bg); color: var(--white); }
+        .btn-navy:hover { background: var(--crimson); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border2); color: var(--navy); }
+        .btn-outline:hover { background: var(--bg2); }
+        .btn-crimson { background: var(--crimson); color: var(--white); }
+        .btn-crimson:hover { background: var(--gold); color: var(--navy); }
+
+        /* ===== PROFILE PANEL ===== */
+        .profile-grid { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+        @media (max-width: 880px) { .profile-grid { grid-template-columns: 1fr; } }
+
+        .pf-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); padding: 28px 24px; text-align: center; }
+        .pf-avatar-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto 14px; }
+        .pf-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
+        .pf-avatar-edit {
+            position: absolute; bottom: -2px; right: -2px; width: 30px; height: 30px;
+            background: var(--navy); color: rgba(255,255,255,0.6); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+            border: 2px solid var(--white); cursor: pointer;
+        }
+        .pf-card h3 { font-family: 'Inter', sans-serif; font-size: 1.4rem; color: var(--navy-deep); font-weight: 700; }
+        .pf-card .pf-role { color: var(--crimson); font-size: 0.78rem; font-weight: 700;    margin: 4px 0 14px; }
+        .pf-card .pf-meta { text-align: left; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px; }
+        .pf-meta-row { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--ink2); margin-bottom: 10px; }
+        .pf-meta-row i { width: 16px; color: var(--navy); }
+
+        .pf-section { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); padding: 26px 28px; margin-bottom: 20px; }
+        .pf-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .pf-section-head h4 {
+            font-family: 'Inter', sans-serif; font-size: 1.15rem; color: var(--navy);
+               font-weight: 700; display: flex; align-items: center; gap: 8px;
+        }
+        .pf-section-head h4 i { color: var(--crimson); font-size: 0.95rem; }
+
+        .pf-bio-text { color: var(--ink2); font-size: 0.9rem; line-height: 1.7; }
+        .pf-edit-area textarea, .pf-edit-area input { width: 100%; }
+
+        /* Form-block style reused from login/register */
+        .fblock { text-align: left; background-color: var(--form-bg); margin-bottom: 8px; padding: 10px 16px; border-radius: 4px; }
+        .fblock label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-purple);    margin-bottom: 3px; letter-spacing: 0.4px; }
+        .fblock input, .fblock textarea, .fblock select {
+            width: 100%; border: none; background: transparent; font-family: inherit;
+            font-size: 0.88rem; color: #333; padding: 2px 0; outline: none; resize: vertical;
+        }
+        .fblock input::placeholder, .fblock textarea::placeholder { color: #8DA9C4; }
+
+        .tag-pill { font-size: 0.74rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; background: rgba(28,46,94,.06); color: var(--navy); border: 1px solid rgba(28,46,94,.13);    letter-spacing: .03em; display: inline-flex; align-items: center; gap: 6px; }
+        .tag-pill button { background: none; border: none; color: var(--crimson); cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0; }
+        .tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .tag-add-row { display: flex; gap: 8px; }
+        .tag-add-row input { flex: 1; border: 1px solid var(--border2); border-radius: 6px; padding: 8px 12px; font-family: inherit; font-size: 0.85rem; outline: none; }
+        .tag-add-row input:focus { border-color: var(--navy); }
+
+        .timeline-item { border-left: 2px solid var(--border2); padding: 2px 0 18px 18px; position: relative; margin-bottom: 4px; }
+        .timeline-item::before { content: ''; position: absolute; left: -5px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); border: 2px solid var(--white); box-shadow: 0 0 0 1px var(--border2); }
+        .timeline-item:last-child { border-left-color: transparent; padding-bottom: 0; }
+        .timeline-item h5 { font-size: 0.92rem; font-weight: 700; color: var(--navy-deep); }
+        .timeline-item .ti-org { font-size: 0.78rem; color: var(--crimson); font-weight: 600; margin: 2px 0; }
+        .timeline-item .ti-date { font-size: 0.72rem; color: var(--ink3);    letter-spacing: 0.3px; margin-bottom: 6px; display: block; }
+        .timeline-item p { font-size: 0.85rem; color: var(--ink2); }
+        .timeline-item .ti-remove { float: right; background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 0.85rem; }
+        .timeline-item .ti-remove:hover { color: var(--crimson); }
+
+        .empty-note { color: var(--ink3); font-size: 0.85rem; padding: 6px 0; }
+        .add-row-btn { background: none; border: 1.5px dashed var(--border2); color: var(--navy); width: 100%; padding: 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-top: 6px; transition: all 0.2s; }
+        .add-row-btn:hover { background: var(--bg2); border-color: var(--navy); }
+
+        .save-bar { display: none; gap: 10px; margin-top: 4px; }
+        .save-bar.show { display: flex; }
+        .saved-toast {
+            position: fixed; bottom: 28px; left: 28px; z-index: 9500;
+            background: var(--navy-deep); color:  rgba(255,255,255,0.6); padding: 12px 20px;
+            border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+            box-shadow: var(--sh-lg); display: flex; align-items: center; gap: 8px;
+            transform: translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s ease;
+        }
+        .saved-toast.show { transform: translateY(0); opacity: 1; }
+        .saved-toast i { color: var(--gold); }
+
+        /* ===== EVENTS PANEL ===== */
+        .events-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+        @media (max-width: 980px) { .events-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px) { .events-grid { grid-template-columns: 1fr; } }
+
+        .ev-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .ev-card:hover { transform: translateY(-4px); }
+        .ev-poster { position: relative; height: 170px; overflow: hidden; }
+        .ev-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .ev-badge { position: absolute; top: 12px; left: 12px; background: var(--crimson); color: var(--white); font-size: 0.66rem; font-weight: 700; padding: 4px 10px; border-radius: 4px;    letter-spacing: 0.4px; }
+        .ev-badge.full { background: var(--ink3); }
+        .ev-date-chip {
+            position: absolute; top: 12px; right: 12px; background: var(--white); border-radius: 6px;
+            padding: 5px 9px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.15); line-height: 1.1;
+        }
+        .ev-date-chip .d { font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--crimson); display: block; }
+        .ev-date-chip .m { font-size: 0.6rem; font-weight: 700; color: var(--navy);    letter-spacing: 0.5px; }
+        .ev-body { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
+        .ev-body h4 { font-family: 'Inter', sans-serif; font-size: 1.2rem; color: var(--navy-deep); font-weight: 700; margin-bottom: 6px; }
+        .ev-loc { font-size: 0.76rem; color: var(--ink2); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .ev-loc i { color: var(--crimson); }
+        .ev-desc { font-size: 0.84rem; color: var(--ink2); line-height: 1.6; margin-bottom: 16px; flex: 1; }
+        .ev-actions { display: flex; gap: 8px; margin-top: auto; }
+        .ev-actions .btn-sm { flex: 1; justify-content: center; }
+        .ev-status-chip { font-size: 0.68rem; font-weight: 700;    letter-spacing: 0.4px; padding: 7px 0; text-align: center; border-radius: 6px; flex: 1; background: rgba(74,222,128,0.12); color: #1d8a4a; }
+
+        /* ===== TRACKED EVENTS PANEL ===== */
+        .track-list { display: flex; flex-direction: column; gap: 12px; }
+        .track-row {
+            background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+            box-shadow: var(--sh); padding: 16px 22px; display: flex; align-items: center; gap: 18px;
+        }
+        .track-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .track-info { flex: 1; min-width: 0; }
+        .track-info h5 { font-size: 0.95rem; font-weight: 700; color: var(--navy-deep); }
+        .track-info p { font-size: 0.78rem; color: var(--ink2); margin-top: 2px; }
+        .track-status { font-size: 0.68rem; font-weight: 700;    letter-spacing: 0.4px; padding: 6px 14px; border-radius: 20px; white-space: nowrap; }
+        .track-status.registered { background: rgba(91,155,213,0.13); color: #2c6aa3; }
+        .track-status.attended { background: rgba(74,222,128,0.15); color: #1d8a4a; }
+        .track-remove { background: none; border: none; color: var(--ink3); cursor: pointer; font-size: 0.95rem; padding: 4px; }
+        .track-remove:hover { color: var(--crimson); }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--ink3); }
+        .empty-state i { font-size: 2.4rem; margin-bottom: 14px; color: var(--border2); }
+        .empty-state p { font-size: 0.9rem; }
+        .empty-state a { color: var(--crimson); font-weight: 600; }
+
+        .skill-hint { font-size: 0.72rem; color: var(--ink3); margin-top: -4px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Shared header injected by shared.js -->
+
+    <!-- ===================== DASH HERO + TABS ===================== -->
+    <section class="dash-hero">
+        <div class="dash-hero-inner">
+            <div class="dash-welcome">
+                <img class="dash-avatar" id="heroAvatar" src="{% static 'myapp/avatar.png' %}" alt="Profile">
+                <div>
+                    <h1 id="heroName">Welcome Back</h1>
+                    <p id="heroSub">Manage your volunteering tracks</p>
+                </div>
+            </div>
+            <div class="dash-stats">
+                <div class="dstat"><strong id="statRegistered">0</strong><span>Registered</span></div>
+                <div class="dstat"><strong id="statAttended">0</strong><span>Attended</span></div>
+                <div class="dstat"><strong id="statHours">0</strong><span>Est. Hours</span></div>
+                <button class="btn" onclick="clearTokens();window.location.href='/login/'">Sign Out</button>
+            </div>
+        </div>
+        <div class="dash-tabs">
+            <button class="dash-tab-btn active" data-tab="profile"><i class="fas fa-id-card"></i> My Profile</button>
+            <button class="dash-tab-btn" data-tab="events"><i class="fas fa-calendar-star"></i> Events</button>
+            <button class="dash-tab-btn" data-tab="tracked"><i class="fas fa-route"></i> My Tracked Events</button>
+        </div>
+    </section>
+
+    <!-- ===================== MAIN ===================== -->
+    <main class="dash-main">
+
+        <!-- ============ PROFILE PANEL ============ -->
+        <div class="dash-panel active" id="panel-profile">
+            <div class="panel-head">
+                <div>
+                    <h2>My Profile</h2>
+                    <p>Your volunteer CV — keep it updated so program leads know your skills and experience.</p>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <!-- Left card -->
+                <div class="pf-card">
+                    <div class="pf-avatar-wrap">
+                        <img class="pf-avatar" id="pfAvatarImg" src="{% static 'myapp/avatar.png' %}" alt="Profile photo">
+                        <div class="pf-avatar-edit" id="pfAvatarBtn" title="Change photo"><i class="fas fa-camera"></i></div>
+                    </div>
+                    <input type="file" id="pfAvatarFile" accept="image/*" style="display:none">
+                    <h3 id="pfNameDisplay">Your Name</h3>
+                    <p class="pf-role" id="pfRoleDisplay">Volunteer</p>
+                    <div class="pf-meta">
+                        <div class="pf-meta-row"><i class="fas fa-envelope"></i><span id="pfEmailDisplay">—</span></div>
+                        <div class="pf-meta-row"><i class="fas fa-phone"></i><span id="pfPhoneDisplay">—</span></div>
+                        <div class="pf-meta-row"><i class="fas fa-location-dot"></i><span id="pfLocationDisplay">—</span></div>
+                    </div>
+                    <button class="btn-outline btn-sm" style="width:100%; margin-top:16px; justify-content:center;" id="editBasicsBtn"><i class="fas fa-pen"></i> Edit Basics</button>
+                </div>
+
+                <!-- Right column -->
+                <div>
+                    <!-- Basics edit form (hidden by default) -->
+                    <div class="pf-section" id="basicsEditCard" style="display:none;">
+                        <div class="pf-section-head"><h4><i class="fas fa-id-card"></i> Edit Basic Info</h4></div>
+                        <div class="fblock"><label>Full Name</label><input type="text" id="inName" placeholder="e.g. Amina Hassan"></div>
+                        <div class="fblock"><label>Role / Title</label><input type="text" id="inRole" placeholder="e.g. Community Volunteer"></div>
+                        <div class="fblock"><label>Email</label><input type="email" id="inEmail" placeholder="you@example.com"></div>
+                        <div class="fblock"><label>Phone</label><input type="text" id="inPhone" placeholder="+255 ..."></div>
+                        <div class="fblock"><label>Location</label><input type="text" id="inLocation" placeholder="e.g. Dar es Salaam, Tanzania"></div>
+                        <div class="save-bar show">
+                            <button class="btn-navy btn-sm" id="saveBasicsBtn"><i class="fas fa-check"></i> Save</button>
+                            <button class="btn-outline btn-sm" id="cancelBasicsBtn">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Bio / Summary -->
+                    <div class="pf-section">
+                        <div class="pf-section-head">
+                            <h4><i class="fas fa-quote-left"></i> About Me</h4>
+                            <button class="btn-outline btn-sm" id="editBioBtn"><i class="fas fa-pen"></i> Edit</button>
+                        </div>
+                        <p class="pf-bio-text" id="bioDisplay">Tell program leads a little about yourself — your motivation for volunteering, what you care about, and what you bring to the table.</p>
+                        <div class="pf-edit-area" id="bioEditArea" style="display:none;">
+                            <div class="fblock"><textarea id="inBio" rows="4" placeholder="Write a short summary about yourself..."></textarea></div>
+                            <div class="save-bar show">
+                                <button class="btn-navy btn-sm" id="saveBioBtn"><i class="fas fa-check"></i> Save</button>
+                                <button class="btn-outline btn-sm" id="cancelBioBtn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="pf-section">
+                        <div class="pf-section-head"><h4><i class="fas fa-bolt"></i> Skills</h4></div>
+                        <div class="tags-wrap" id="skillsWrap"></div>
+                        <div class="tag-add-row">
+                            <input type="text" id="inSkillAdd" placeholder="Add a skill, e.g. Public Speaking, Excel, Photography...">
+                            <button class="btn-navy btn-sm" id="addSkillBtn"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Experience -->
+                    <div class="pf-section">
+                        <div class="pf-section-head"><h4><i class="fas fa-briefcase"></i> Experience</h4></div>
+                        <div id="expList"></div>
+                        <button class="add-row-btn" id="addExpBtn"><i class="fas fa-plus"></i> Add Experience</button>
+                    </div>
+
+                    <!-- Education -->
+                    <div class="pf-section">
+                        <div class="pf-section-head"><h4><i class="fas fa-graduation-cap"></i> Education</h4></div>
+                        <div id="eduList"></div>
+                        <button class="add-row-btn" id="addEduBtn"><i class="fas fa-plus"></i> Add Education</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ EVENTS PANEL ============ -->
+        <div class="dash-panel" id="panel-events">
+            <div class="panel-head">
+                <div>
+                    <h2>Upcoming Events</h2>
+                    <p>Browse events from Zanchangemakers and register your spot. Registration opens a short form to confirm your details.</p>
+                </div>
+            </div>
+            <div class="events-grid" id="eventsGrid"></div>
+        </div>
+
+        <!-- ============ TRACKED EVENTS PANEL ============ -->
+        <div class="dash-panel" id="panel-tracked">
+            <div class="panel-head">
+                <div>
+                    <h2>My Tracked Events</h2>
+                    <p>Everything you've registered for or attended, in one place.</p>
+                </div>
+            </div>
+            <div class="track-list" id="trackedList"></div>
+        </div>
+
+    </main>
+
+    <!-- Toast -->
+    <div class="saved-toast" id="savedToast"><i class="fas fa-circle-check"></i> <span id="savedToastText">Saved</span></div>
+
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+    <script>
+    /* ============================================================
+       ZANCHANGEMAKERS — VOLUNTEER DASHBOARD (dash.html)
+       ============================================================ */
+
+    const PROFILE_KEY = 'zcm_profile';
+    const TRACKED_KEY = 'zcm_tracked_events';
+
+    /* ---------- Storage helper ---------- */
+    const DASH_DB = {
+      get: function(key, fallback) { try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch(e) { return fallback; } },
+      set: function(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    };
+
+    const defaultProfile = {
+      name: '', role: 'Volunteer', email: '', phone: '', location: '',
+      avatar: '', bio: '', skills: [], experience: [], education: []
+    };
+
+    let profile = DASH_DB.get(PROFILE_KEY, defaultProfile);
+    let tracked = DASH_DB.get(TRACKED_KEY, []);
+    let EVENTS = [];
+    let myRegistrations = [];
+
+    /* ---------- Load profile from API ---------- */
+    async function loadProfileFromAPI() {
+      try {
+        var me = await apiGet('/api/auth/me/');
+        if (!me) return;
+        var vp = me.volunteer_profile || {};
+        profile.name = (me.first_name || '') + ' ' + (me.last_name || '');
+        profile.name = profile.name.trim() || me.full_name || '';
+        profile.role = me.role || 'Volunteer';
+        profile.email = me.email || '';
+        profile.phone = me.phone_number || '';
+        profile.location = vp.location || me.street_address || '';
+        profile.avatar = me.avatar || '';
+        profile.bio = vp.bio || '';
+        profile.skills = vp.skills ? vp.skills.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+        DASH_DB.set(PROFILE_KEY, profile);
+      } catch(e) { /* keep localStorage fallback */ }
+    }
+
+    /* ---------- Load events from API ---------- */
+    async function loadEventsFromAPI() {
+      try {
+        var data = await apiGet('/api/events/');
+        if (!data) return;
+        var list = data.results || data;
+        EVENTS = list.map(function(e) {
+          var cap = e.capacity || 0;
+          return {
+            id: 'ev-' + e.id,
+            title: e.title,
+            date: e.date,
+            location: e.location,
+            image: e.image || '',
+            description: e.description,
+            capacity: cap > 0 && e.registrations && e.registrations.length >= cap ? 'full' : 'open',
+            apiId: e.id
+          };
+        });
+      } catch(e) { /* events remain empty */ }
+    }
+
+    /* ---------- Load my registrations from API ---------- */
+    async function loadRegistrationsFromAPI() {
+      try {
+        var me = await apiGet('/api/auth/me/');
+        if (!me) return;
+        var regs = await apiGet('/api/event-registrations/');
+        if (!regs) return;
+        var list = regs.results || regs;
+        myRegistrations = list.filter(function(r){ return r.volunteer === me.id; });
+        myRegistrations.forEach(function(r){
+          var tid = 'ev-' + r.event;
+          if (!tracked.find(function(t){ return t.eventId === tid; })) {
+            tracked.push({ eventId: tid, status: r.status, date: r.registered_at ? r.registered_at.slice(0,10) : '' });
+          }
+        });
+        DASH_DB.set(TRACKED_KEY, tracked);
+      } catch(e) { /* use localStorage fallback */ }
+    }
+
+    function fmtDate(iso) {
+      var d = new Date(iso + 'T00:00:00');
+      return { day: d.getDate(), month: d.toLocaleString('en', { month: 'short' }).toUpperCase() };
+    }
+
+    function getEventById(id) { return EVENTS.find(function(e){ return e.id === id; }); }
+
+    document.querySelectorAll('.dash-tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.dash-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelectorAll('.dash-panel').forEach(function(p){ p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function showToast(text) {
+      var toast = document.getElementById('savedToast');
+      document.getElementById('savedToastText').textContent = text;
+      toast.classList.add('show');
+      setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+    }
+
+    function renderProfileHeader() {
+      document.getElementById('pfNameDisplay').textContent = profile.name || 'Your Name';
+      document.getElementById('pfRoleDisplay').textContent = profile.role || 'Volunteer';
+      document.getElementById('pfEmailDisplay').textContent = profile.email || 'Add your email';
+      document.getElementById('pfPhoneDisplay').textContent = profile.phone || 'Add your phone';
+      document.getElementById('pfLocationDisplay').textContent = profile.location || 'Add your location';
+      var DEFAULT_AVATAR = "{% static 'myapp/avatar.png' %}";
+      document.getElementById('pfAvatarImg').src = profile.avatar || DEFAULT_AVATAR;
+      document.getElementById('heroAvatar').src = profile.avatar || DEFAULT_AVATAR;
+      document.getElementById('heroName').textContent = profile.name ? 'Welcome, ' + profile.name.split(' ')[0] : 'Welcome Back';
+    }
+
+    function renderBio() {
+      document.getElementById('bioDisplay').textContent = profile.bio || 'Tell program leads a little about yourself — your motivation for volunteering, what you care about, and what you bring to the table.';
+    }
+
+    function renderSkills() {
+      var wrap = document.getElementById('skillsWrap');
+      wrap.innerHTML = '';
+      if (!profile.skills.length) { wrap.innerHTML = '<p class="empty-note">No skills added yet — add what you bring to the table below.</p>'; return; }
+      profile.skills.forEach(function(skill, i) {
+        var pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = escapeHtml(skill) + ' <button data-i="' + i + '" title="Remove"><i class="fas fa-xmark"></i></button>';
+        wrap.appendChild(pill);
+      });
+      wrap.querySelectorAll('button').forEach(function(b) {
+        b.addEventListener('click', function() {
+          profile.skills.splice(parseInt(b.dataset.i), 1);
+          DASH_DB.set(PROFILE_KEY, profile);
+          renderSkills();
+        });
+      });
+    }
+
+    function renderExperience() {
+      var list = document.getElementById('expList');
+      list.innerHTML = '';
+      if (!profile.experience.length) { list.innerHTML = '<p class="empty-note">No experience added yet.</p>'; return; }
+      profile.experience.forEach(function(exp, i) {
+        var item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = '<button class="ti-remove" data-i="' + i + '" title="Remove"><i class="fas fa-trash"></i></button><h5>' + escapeHtml(exp.title) + '</h5><p class="ti-org">' + escapeHtml(exp.org) + '</p><span class="ti-date">' + escapeHtml(exp.dates) + '</span><p>' + escapeHtml(exp.desc) + '</p>';
+        list.appendChild(item);
+      });
+      list.querySelectorAll('.ti-remove').forEach(function(b) {
+        b.addEventListener('click', function() {
+          profile.experience.splice(parseInt(b.dataset.i), 1);
+          DASH_DB.set(PROFILE_KEY, profile);
+          renderExperience();
+        });
+      });
+    }
+
+    function renderEducation() {
+      var list = document.getElementById('eduList');
+      list.innerHTML = '';
+      if (!profile.education.length) { list.innerHTML = '<p class="empty-note">No education added yet.</p>'; return; }
+      profile.education.forEach(function(edu, i) {
+        var item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = '<button class="ti-remove" data-i="' + i + '" title="Remove"><i class="fas fa-trash"></i></button><h5>' + escapeHtml(edu.degree) + '</h5><p class="ti-org">' + escapeHtml(edu.school) + '</p><span class="ti-date">' + escapeHtml(edu.dates) + '</span>';
+        list.appendChild(item);
+      });
+      list.querySelectorAll('.ti-remove').forEach(function(b) {
+        b.addEventListener('click', function() {
+          profile.education.splice(parseInt(b.dataset.i), 1);
+          DASH_DB.set(PROFILE_KEY, profile);
+          renderEducation();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      var d = document.createElement('div');
+      d.textContent = str == null ? '' : str;
+      return d.innerHTML;
+    }
+
+    function saveProfileToAPI() {
+      apiPatch('/api/auth/me/', {
+        first_name: (profile.name || '').split(' ')[0] || '',
+        last_name: (profile.name || '').split(' ').slice(1).join(' ') || '',
+        phone_number: profile.phone || '',
+        street_address: profile.location || ''
+      });
+    }
+
+    /* ---- Edit Basics ---- */
+    document.getElementById('editBasicsBtn').addEventListener('click', () => {
+      document.getElementById('inName').value = profile.name;
+      document.getElementById('inRole').value = profile.role;
+      document.getElementById('inEmail').value = profile.email;
+      document.getElementById('inPhone').value = profile.phone;
+      document.getElementById('inLocation').value = profile.location;
+      document.getElementById('basicsEditCard').style.display = 'block';
+      document.getElementById('basicsEditCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Pre-select existing values so typing replaces them instead of appending
+      ['inName','inRole','inEmail','inPhone','inLocation'].forEach(id => {
+        document.getElementById(id).addEventListener('focus', function () { this.select(); }, { once: false });
+      });
+    });
+    document.getElementById('cancelBasicsBtn').addEventListener('click', () => {
+      document.getElementById('basicsEditCard').style.display = 'none';
+    });
+    document.getElementById('saveBasicsBtn').addEventListener('click', function() {
+      profile.name = document.getElementById('inName').value.trim();
+      profile.role = document.getElementById('inRole').value.trim() || 'Volunteer';
+      profile.email = document.getElementById('inEmail').value.trim();
+      profile.phone = document.getElementById('inPhone').value.trim();
+      profile.location = document.getElementById('inLocation').value.trim();
+      DASH_DB.set(PROFILE_KEY, profile);
+      saveProfileToAPI();
+      renderProfileHeader();
+      document.getElementById('basicsEditCard').style.display = 'none';
+      showToast('Profile basics saved');
+    });
+
+    document.getElementById('pfAvatarBtn').addEventListener('click', function() { document.getElementById('pfAvatarFile').click(); });
+    document.getElementById('pfAvatarFile').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        profile.avatar = ev.target.result;
+        DASH_DB.set(PROFILE_KEY, profile);
+        renderProfileHeader();
+        showToast('Profile photo updated');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('editBioBtn').addEventListener('click', function() {
+      document.getElementById('inBio').value = profile.bio;
+      document.getElementById('bioDisplay').style.display = 'none';
+      document.getElementById('bioEditArea').style.display = 'block';
+    });
+    document.getElementById('cancelBioBtn').addEventListener('click', function() {
+      document.getElementById('bioDisplay').style.display = 'block';
+      document.getElementById('bioEditArea').style.display = 'none';
+    });
+    document.getElementById('saveBioBtn').addEventListener('click', function() {
+      profile.bio = document.getElementById('inBio').value.trim();
+      DASH_DB.set(PROFILE_KEY, profile);
+      renderBio();
+      document.getElementById('bioDisplay').style.display = 'block';
+      document.getElementById('bioEditArea').style.display = 'none';
+      showToast('About Me saved');
+    });
+
+    function addSkill() {
+      var input = document.getElementById('inSkillAdd');
+      var val = input.value.trim();
+      if (!val) return;
+      profile.skills.push(val);
+      input.value = '';
+      DASH_DB.set(PROFILE_KEY, profile);
+      renderSkills();
+    }
+    document.getElementById('addSkillBtn').addEventListener('click', addSkill);
+    document.getElementById('inSkillAdd').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addSkill(); }
+    });
+
+    document.getElementById('addExpBtn').addEventListener('click', function() {
+      var wrap = document.createElement('div');
+      wrap.className = 'pf-edit-area';
+      wrap.innerHTML = '<div class="fblock"><label>Title / Position</label><input type="text" class="exp-title" placeholder="e.g. Event Coordinator"></div><div class="fblock"><label>Organization</label><input type="text" class="exp-org" placeholder="e.g. Zanchangemakers"></div><div class="fblock"><label>Dates</label><input type="text" class="exp-dates" placeholder="e.g. Jan 2025 \u2013 Present"></div><div class="fblock"><label>Description</label><textarea class="exp-desc" rows="2" placeholder="What did you do?"></textarea></div><div class="save-bar show"><button class="btn-navy btn-sm exp-save"><i class="fas fa-check"></i> Save</button><button class="btn-outline btn-sm exp-cancel">Cancel</button></div>';
+      document.getElementById('addExpBtn').insertAdjacentElement('beforebegin', wrap);
+      document.getElementById('addExpBtn').style.display = 'none';
+      wrap.querySelector('.exp-cancel').addEventListener('click', function() { wrap.remove(); document.getElementById('addExpBtn').style.display = 'block'; });
+      wrap.querySelector('.exp-save').addEventListener('click', function() {
+        var title = wrap.querySelector('.exp-title').value.trim();
+        var org = wrap.querySelector('.exp-org').value.trim();
+        var dates = wrap.querySelector('.exp-dates').value.trim();
+        var desc = wrap.querySelector('.exp-desc').value.trim();
+        if (!title) { wrap.querySelector('.exp-title').focus(); return; }
+        profile.experience.push({ title: title, org: org, dates: dates, desc: desc });
+        DASH_DB.set(PROFILE_KEY, profile);
+        renderExperience();
+        wrap.remove();
+        document.getElementById('addExpBtn').style.display = 'block';
+        showToast('Experience added');
+      });
+    });
+
+    document.getElementById('addEduBtn').addEventListener('click', function() {
+      var wrap = document.createElement('div');
+      wrap.className = 'pf-edit-area';
+      wrap.innerHTML = '<div class="fblock"><label>Degree / Certificate</label><input type="text" class="edu-degree" placeholder="e.g. Diploma in Information Technology"></div><div class="fblock"><label>School / Institution</label><input type="text" class="edu-school" placeholder="e.g. Mbeya University"></div><div class="fblock"><label>Dates</label><input type="text" class="edu-dates" placeholder="e.g. 2021 \u2013 2024"></div><div class="save-bar show"><button class="btn-navy btn-sm edu-save"><i class="fas fa-check"></i> Save</button><button class="btn-outline btn-sm edu-cancel">Cancel</button></div>';
+      document.getElementById('addEduBtn').insertAdjacentElement('beforebegin', wrap);
+      document.getElementById('addEduBtn').style.display = 'none';
+      wrap.querySelector('.edu-cancel').addEventListener('click', function() { wrap.remove(); document.getElementById('addEduBtn').style.display = 'block'; });
+      wrap.querySelector('.edu-save').addEventListener('click', function() {
+        var degree = wrap.querySelector('.edu-degree').value.trim();
+        var school = wrap.querySelector('.edu-school').value.trim();
+        var dates = wrap.querySelector('.edu-dates').value.trim();
+        if (!degree) { wrap.querySelector('.edu-degree').focus(); return; }
+        profile.education.push({ degree: degree, school: school, dates: dates });
+        DASH_DB.set(PROFILE_KEY, profile);
+        renderEducation();
+        wrap.remove();
+        document.getElementById('addEduBtn').style.display = 'block';
+        showToast('Education added');
+      });
+    });
+
+    function isTracked(eventId) { return tracked.find(function(t){ return t.eventId === eventId; }); }
+
+    function renderEvents() {
+      var grid = document.getElementById('eventsGrid');
+      grid.innerHTML = '';
+      if (!EVENTS.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-calendar"></i><p>No upcoming events at this time. Check back soon!</p></div>'; return; }
+      EVENTS.forEach(function(ev) {
+        var d = fmtDate(ev.date);
+        var trackedEntry = isTracked(ev.id);
+        var isFull = ev.capacity === 'full';
+        var card = document.createElement('div');
+        card.className = 'ev-card';
+        card.innerHTML = '<div class="ev-poster"><img src="{% static 'myapp/head logo.png' %}" alt="' + escapeHtml(ev.title) + '" onerror="this.src=\'head logo.png\'">' + (isFull ? '<span class="ev-badge full">Fully Booked</span>' : '<span class="ev-badge">Open</span>') + '<div class="ev-date-chip"><span class="d">' + d.day + '</span><span class="m">' + d.month + '</span></div></div><div class="ev-body"><h4>' + escapeHtml(ev.title) + '</h4><p class="ev-loc"><i class="fas fa-location-dot"></i> ' + escapeHtml(ev.location) + '</p><p class="ev-desc">' + escapeHtml(ev.description) + '</p><div class="ev-actions">' + (trackedEntry ? '<span class="ev-status-chip"><i class="fas fa-check"></i> ' + (trackedEntry.status === 'attended' ? 'Attended' : 'Registered') + '</span>' : '<button class="btn-sm btn-navy ev-register" data-id="' + ev.id + '"' + (isFull ? ' disabled style="opacity:.5;cursor:not-allowed;"' : '') + '><i class="fas fa-arrow-up-right-from-square"></i> Register</button>') + '</div></div>';
+        grid.appendChild(card);
+      });
+      grid.querySelectorAll('.ev-register').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = btn.dataset.id;
+          var ev = getEventById(id);
+          if (!ev || isTracked(id)) return;
+          apiPost('/api/events/' + ev.apiId + '/register/', {});
+          tracked.push({ eventId: id, status: 'registered', date: new Date().toISOString().slice(0, 10) });
+          DASH_DB.set(TRACKED_KEY, tracked);
+          renderEvents();
+          renderTracked();
+          renderStats();
+          showToast('Registered for event');
+        });
+      });
+    }
+
+    function renderTracked() {
+      var list = document.getElementById('trackedList');
+      list.innerHTML = '';
+      if (!tracked.length) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-route"></i><p>You haven\'t registered for any events yet.<br>Head to the <a href="#" onclick="document.querySelector(\'[data-tab=events]\').click(); return false;">Events tab</a> to find something to join.</p></div>';
+        return;
+      }
+      var sorted = tracked.slice().reverse();
+      sorted.forEach(function(t) {
+        var ev = getEventById(t.eventId);
+        if (!ev) return;
+        var realIndex = tracked.indexOf(t);
+        var row = document.createElement('div');
+        row.className = 'track-row';
+        row.innerHTML = '<img class="track-thumb" src="{% static 'myapp/head logo.png' %}" onerror="this.src=\'head logo.png\'" alt=""><div class="track-info"><h5>' + escapeHtml(ev.title) + '</h5><p><i class="fas fa-location-dot"></i> ' + escapeHtml(ev.location) + ' &nbsp;·&nbsp; ' + new Date(ev.date + 'T00:00:00').toLocaleDateString('en', { day:'numeric', month:'short', year:'numeric' }) + '</p></div><select class="track-status-select" data-i="' + realIndex + '" style="font-family:inherit;font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:6px 10px;border-radius:20px;border:1px solid var(--border2);background:' + (t.status === 'attended' ? 'rgba(74,222,128,0.15)' : 'rgba(91,155,213,0.13)') + ';color:' + (t.status === 'attended' ? '#1d8a4a' : '#2c6aa3') + ';cursor:pointer;"><option value="registered"' + (t.status === 'registered' ? ' selected' : '') + '>Registered</option><option value="attended"' + (t.status === 'attended' ? ' selected' : '') + '>Attended</option></select><button class="track-remove" data-i="' + realIndex + '" title="Remove from tracked events"><i class="fas fa-trash"></i></button>';
+        list.appendChild(row);
+      });
+      list.querySelectorAll('.track-status-select').forEach(function(sel) {
+        sel.addEventListener('change', function() {
+          var i = parseInt(sel.dataset.i);
+          tracked[i].status = sel.value;
+          DASH_DB.set(TRACKED_KEY, tracked);
+          renderTracked();
+          renderEvents();
+          renderStats();
+          showToast('Status updated');
+        });
+      });
+      list.querySelectorAll('.track-remove').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var i = parseInt(btn.dataset.i);
+          tracked.splice(i, 1);
+          DASH_DB.set(TRACKED_KEY, tracked);
+          renderTracked();
+          renderEvents();
+          renderStats();
+          showToast('Removed from tracked events');
+        });
+      });
+    }
+
+    function renderStats() {
+      var registeredCount = tracked.filter(function(t){ return t.status === 'registered'; }).length;
+      var attendedCount = tracked.filter(function(t){ return t.status === 'attended'; }).length;
+      document.getElementById('statRegistered').textContent = registeredCount;
+      document.getElementById('statAttended').textContent = attendedCount;
+      document.getElementById('statHours').textContent = attendedCount * 4 || '0';
+    }
+
+    function renderAll() {
+      renderProfileHeader();
+      renderBio();
+      renderSkills();
+      renderExperience();
+      renderEducation();
+      renderEvents();
+      renderTracked();
+      renderStats();
+    }
+
+    /* Init: load from APIs then render */
+    (async function init() {
+      if (typeof apiGet !== 'undefined') {
+        await loadProfileFromAPI();
+        await loadEventsFromAPI();
+        await loadRegistrationsFromAPI();
+      }
+      renderAll();
+    })();
+    </script>
+    
+    <script id="django-urls-data" type="application/json">{"home": "/", "about": "/about/", "programs": "/programs/", "volunteer": "/volunteer/", "gallery": "/gallery/", "stories": "/stories/", "contact": "/contact/", "register": "/register/", "login": "/login/", "donate": "/donate/"}</script>
+</body>
+</html>

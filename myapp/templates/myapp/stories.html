@@ -1,0 +1,250 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+
+    <title>Volunteer Stories</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --white: #ffffff;
+            --border: rgba(28, 46, 94, 0.09);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg2);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+
+        .sec-head { text-align: center; margin-bottom: 48px; }
+        .eyebrow { font-size: 0.75rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: var(--crimson); margin-bottom: 10px; }
+        .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; color: var(--navy-deep); text-transform: uppercase; line-height: 1; }
+        .section-sub { max-width: 580px; margin: 16px auto 0; font-size: 0.98rem; color: var(--ink2); }
+
+        /* Stories grid */
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            margin-bottom: 50px;
+        }
+        @media(max-width: 900px) {
+            .stories-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media(max-width: 600px) {
+            .stories-grid { grid-template-columns: 1fr; }
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(15, 26, 54, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .story-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 38px rgba(15, 26, 54, 0.14);
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+        }
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+        .story-card:hover .image-wrapper img { transform: scale(1.06); }
+
+        .image-wrapper::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15,26,54,0.55) 0%, rgba(15,26,54,0) 45%);
+        }
+
+        .tag-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 2;
+            background-color: var(--crimson);
+            color: var(--white);
+            padding: 6px 12px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .quote-mark {
+            position: absolute;
+            bottom: 10px;
+            right: 14px;
+            z-index: 2;
+            color: rgba(255,255,255,0.85);
+            font-family: Georgia, serif;
+            font-size: 2.6rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .story-body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
+
+        .story-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--navy-deep);
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+        .story-desc {
+            font-size: 0.88rem;
+            color: var(--ink2);
+            line-height: 1.65;
+            margin-bottom: 18px;
+            flex: 1;
+        }
+
+        .story-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: var(--navy);
+            text-decoration: none;
+            align-self: flex-start;
+        }
+        .story-link i { font-size: 0.7rem; transition: transform 0.25s ease; }
+        .story-card:hover .story-link { color: var(--crimson); }
+        .story-card:hover .story-link i { transform: translateX(4px); }
+
+        .action-container {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .btn-more {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--navy);
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 14px 30px;
+            border-radius: 50px;
+            letter-spacing: 0.4px;
+            box-shadow: 0 8px 20px rgba(28, 46, 94, 0.18);
+            transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .btn-more:hover {
+            background: var(--crimson);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 26px rgba(165, 28, 48, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <div class="sec-head">
+                <p class="eyebrow">Real People, Real Impact</p>
+                <h2 class="section-h">Volunteer Stories</h2>
+                <p class="section-sub">Meet the young changemakers turning training, mentorship, and community outreach into lasting impact across Zanzibar and Tanzania.</p>
+            </div>
+
+            <div class="stories-grid">
+
+                <!-- Card 1 -->
+                <div class="story-card">
+                    <div class="image-wrapper">
+                        <span class="tag-badge">Youth Leadership</span>
+                        <span class="quote-mark">&rdquo;</span>
+                        <img src="{% static 'myapp/DSC_2216_BinSeif.jpg.jpeg' %}" alt="Volunteer story photo — youth leadership">
+                    </div>
+                    <div class="story-body">
+                        <h3 class="story-title">From First Training to Youth Trainer</h3>
+                        <p class="story-desc">What started as a single leadership bootcamp turned into a calling. Today this volunteer helps design and lead the very trainings that once changed their own path.</p>
+                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="story-card">
+                    <div class="image-wrapper">
+                        <span class="tag-badge">Community Outreach</span>
+                        <span class="quote-mark">&rdquo;</span>
+                        <img src="{% static 'myapp/DSC_1618_BinSeif.jpg.jpeg' %}" alt="Volunteer story photo — community outreach">
+                    </div>
+                    <div class="story-body">
+                        <h3 class="story-title">Building Confidence Through Community Outreach</h3>
+                        <p class="story-desc">Door-to-door awareness walks and weekend cleanups taught this volunteer more about leadership than any classroom could — and gave them the confidence to speak up for their community.</p>
+                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="story-card">
+                    <div class="image-wrapper">
+                        <span class="tag-badge">Digital Skills</span>
+                        <span class="quote-mark">&rdquo;</span>
+                        <img src="{% static 'myapp/WAX_7020_BinSeif_Original.jpg.jpeg' %}" alt="Volunteer story photo — digital skills training">
+                    </div>
+                    <div class="story-body">
+                        <h3 class="story-title">Turning Passion Into Purpose With Digital Skills</h3>
+                        <p class="story-desc">After completing the Digital Skills Training cohort, this volunteer now mentors younger participants — proof that one opportunity can ripple through an entire community.</p>
+                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-container">
+                <a href="{% url 'stories' %}" class="btn-more">
+                    View All Stories <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>

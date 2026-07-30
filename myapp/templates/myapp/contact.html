@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>Contact Us</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --green: #2D7A3A;
+            --ink2: #4A5879;
+            --ink3: #8A9ABE;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --border: rgba(28, 46, 94, 0.09);
+            --white: #ffffff;
+            --form-bg: #E1EDF7;
+            --text-purple: #6A1B51;
+            --r: 12px;
+            --sh: 0 4px 24px rgba(28, 46, 94, 0.10);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg2); color: var(--navy-deep); line-height: 1.6; }
+
+        /* Main Contact Section Frame Layout */
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .sec-head { text-align: center; margin-bottom: 50px; }
+        .eyebrow { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .28em; color: var(--crimson); margin-bottom: 10px; }
+        .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; text-transform: uppercase; color: var(--navy-deep); line-height: 1; }
+        .lead { color: var(--ink2); font-size: 1rem; max-width: 600px; margin: 15px auto 0; }
+
+        .contact-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px; align-items: start; }
+        @media(max-width: 900px) { .contact-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+        /* Left Column: Contact Channels Card Modules */
+        .info-pane { background: var(--white); padding: 35px; border-radius: var(--r); border: 1px solid var(--border); box-shadow: var(--sh); }
+        .info-pane h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.7rem; font-weight: 800; text-transform: uppercase; color: var(--navy); margin-bottom: 25px; border-bottom: 2px solid var(--bg2); padding-bottom: 10px; }
+
+        .contact-row { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 25px; }
+        .contact-row:last-child { margin-bottom: 0; }
+        .icon-box { width: 42px; height: 42px; border-radius: 8px; background: var(--navy); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; transition: transform 0.25s ease; }
+        .contact-row:hover .icon-box { transform: scale(1.08) rotate(-4deg); background: var(--crimson); }
+        .row-text h4 { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--navy-deep); letter-spacing: .05em; margin-bottom: 4px; }
+        .row-text p { color: var(--ink2); font-size: 0.92rem; }
+        .row-text a { color: var(--ink2); text-decoration: none; }
+        .row-text a:hover { color: var(--crimson); }
+
+        /* Social Icons Panel Layout */
+        .socials-title { font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--ink3); margin-top: 35px; margin-bottom: 12px; letter-spacing: 0.08em; }
+        .social-row { display: flex; gap: 10px; }
+        .soc-circle { width: 38px; height: 36px; border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink2); font-size: 0.95rem; transition: all 0.2s; }
+        .soc-circle:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+        /* Right Column: Inquiry Form Card */
+        .form-card { background: var(--white); padding: 35px; border-radius: var(--r); border: 1px solid var(--border); box-shadow: var(--sh); text-align: center; }
+        .form-block { text-align: left; background-color: var(--form-bg); margin-bottom: 3px; padding: 12px 20px; border-radius: 6px; }
+        .form-block label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-purple); margin-bottom: 4px; letter-spacing: 0.5px; }
+        .form-block label span { color: var(--crimson); margin-left: 2px; }
+
+        .field-txt { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.95rem; color: #444; padding: 2px 0; outline: none; }
+        .field-txt::placeholder { color: #8DA9C4; }
+        textarea.field-txt { resize: none; height: 120px; }
+
+        .btn-submit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: var(--navy); color: var(--white); border: none; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; letter-spacing: 0.5px; margin-top: 16px; transition: background 0.2s; }
+        .btn-submit:hover { background: var(--crimson); }
+
+        /* Success Message Layout */
+        #successCard { display: none; padding: 30px 0 10px; text-align: center; }
+        .s-icon { width: 64px; height: 64px; background: var(--green); color: var(--white); font-size: 2.2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(45, 122, 58, 0.3); }
+        #successCard h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.9rem; font-weight: 800; text-transform: uppercase; color: var(--navy); margin-bottom: 8px; }
+        #successCard p { color: #555; margin-bottom: 25px; font-size: 0.92rem; }
+        .success-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; background: var(--navy); color: var(--white); font-weight: 700; text-decoration: none; border-radius: 50px; font-size: 0.88rem; letter-spacing: 0.4px; transition: all 0.25s ease; }
+        .success-btn:hover { background: var(--crimson); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <!-- Main Section Structure Frame Content -->
+    <main class="container">
+        <div class="sec-head">
+            <p class="eyebrow">Get In Touch</p>
+            <h2 class="section-h">Contact Us</h2>
+            <p class="lead">Have questions about upcoming cohorts, institutional partnership models, or support operations? Reach out directly.</p>
+        </div>
+
+        <div class="contact-grid">
+
+            <!-- Left Column: Contextual Contact Info Panel -->
+            <div class="info-pane">
+                <h3>Contact Information</h3>
+
+                <div class="contact-row">
+                    <div class="icon-box"><i class="fa-solid fa-location-dot"></i></div>
+                    <div class="row-text">
+                        <h4>Office Location</h4>
+                        <p>Zanzibar Town, Zanzibar, Tanzania</p>
+                    </div>
+                </div>
+
+                <div class="contact-row">
+                    <div class="icon-box"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="row-text">
+                        <h4>Email Channels</h4>
+                        <p><a href="mailto:info@zanchangemakers.org">info@zanchangemakers.org</a></p>
+                    </div>
+                </div>
+
+                <div class="contact-row">
+                    <div class="icon-box"><i class="fa-solid fa-phone"></i></div>
+                    <div class="row-text">
+                        <h4>Phone Enquiries</h4>
+                        <p><a href="tel:+255712345678">+255 712 345 678</a></p>
+                    </div>
+                </div>
+
+                <div class="contact-row">
+                    <div class="icon-box"><i class="fa-solid fa-clock"></i></div>
+                    <div class="row-text">
+                        <h4>Office Hours</h4>
+                        <p>Monday – Friday, 9:00 AM – 5:00 PM (EAT)</p>
+                    </div>
+                </div>
+
+                <!-- Shared Footer Social Media Anchor Buttons System -->
+                <div class="socials-title">Follow Our Community Updates</div>
+                <div class="social-row">
+                   <a href="https://www.instagram.com/zanchangemakers?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="soc-circle"><i class="fa-brands fa-instagram"></i></a>
+                   <a href="https://www.facebook.com/zanchangemakers" target="_blank" class="soc-circle"><i class="fa-brands fa-facebook-f"></i></a>
+                 </div>
+            </div>
+
+            <!-- Right Column: Inquiry Message Form -->
+            <div class="form-card">
+                <form id="contactForm">
+
+                    <div class="form-block">
+                        <label for="contactName">Your Name<span>*</span></label>
+                        <input type="text" id="contactName" name="name" class="field-txt" placeholder="Type here" required />
+                    </div>
+
+                    <div class="form-block">
+                        <label for="contactEmail">Email Address<span>*</span></label>
+                        <input type="email" id="contactEmail" name="email" class="field-txt" placeholder="Type here" required />
+                    </div>
+
+                    <div class="form-block">
+                        <label for="contactSubject">Subject<span>*</span></label>
+                        <input type="text" id="contactSubject" name="subject" class="field-txt" placeholder="Type here" required />
+                    </div>
+
+                    <div class="form-block" style="padding-bottom: 5px;">
+                        <label for="contactMessage">Message / Inquiry Content<span>*</span></label>
+                        <textarea id="contactMessage" name="message" class="field-txt" placeholder="Type here" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Send Inquiry Message <i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+
+                <!-- Inquiry Form Submission Success Feedback Panel -->
+                <div id="successCard">
+                    <div class="s-icon"><i class="fa-solid fa-check"></i></div>
+                    <h3>Inquiry Sent!</h3>
+                    <p>Your message has been logged by our secretariat desk. We will respond shortly via email channels.</p>
+                    <a  class="success-btn">Go to Homepage <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('contactName').value.trim(),
+                email: document.getElementById('contactEmail').value.trim(),
+                subject: document.getElementById('contactSubject').value.trim(),
+                message: document.getElementById('contactMessage').value.trim(),
+            };
+            try {
+                const res = await fetch('/api/contact-messages/', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (res.ok) {
+                    document.getElementById('contactForm').style.display = 'none';
+                    document.getElementById('successCard').style.display = 'block';
+                } else {
+                    alert('Failed to send message. Please try again.');
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+            }
+        });
+    </script>
+
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>

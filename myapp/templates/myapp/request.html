@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <title>Request Application</title>    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --bg: #faf8f5;
+            --white: #ffffff;
+            --form-bg: #E1EDF7;
+            --text-purple: #6A1B51;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--navy-deep); }
+        
+        /* Shared Branded Global Header Navigation Bar */
+      
+        /* Form Page Layout Section Wrap */
+        .form-wrapper { max-width: 680px; margin: 40px auto; padding: 0 20px; text-align: center; }
+        .page-title { font-family: 'Barlow Condensed', sans-serif; font-size: 2.2rem; color: #3A70B5; font-weight: 700; margin-bottom: 5px;    }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        /* Specialty Flat Block Fields matching image_50a081.png structure */
+        .form-block { text-align: left; background-color: var(--form-bg); margin-bottom: 3px; padding: 12px 20px; border-radius: 2px; }
+        .form-block label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-purple);    margin-bottom: 4px; letter-spacing: 0.5px; }
+        .form-block label span { color: var(--crimson); margin-left: 2px; }
+        
+        .field-txt { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.95rem; color: #444; padding: 2px 0; outline: none; }
+        .field-txt::placeholder { color: #8DA9C4; }
+        
+        .field-select { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.95rem; color: #555; padding: 2px 0; outline: none; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        .select-wrapper { position: relative; }
+        .select-wrapper::after { content: "▼"; font-size: 0.7rem; color: #000; position: absolute; right: 5px; top: 4px; pointer-events: none; }
+
+        /* Actions Elements & Interactive States styling */
+        .btn-submit { width: 100%; padding: 14px; background: var(--navy); color: white; border: none; border-radius: 4px; font-weight: 700; font-size: 1rem; cursor: pointer;    letter-spacing: 0.5px; margin-top: 15px; transition: background 0.2s; }
+        .btn-submit:hover { background: var(--crimson); }
+        .back-link { display: inline-block; text-align: center; margin-top: 20px; color: #777; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--crimson); }
+
+        #successMsg { display: none; background: var(--white); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: center; }
+        .success-icon { font-size: 3.5rem; color: #059669; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Unified Global Header Navigation Bar -->
+    
+
+    <!-- Main Application Form Area Structure -->
+    <main class="form-wrapper">
+        
+        <form id="reqForm">
+            <h1 class="page-title">Request Application Form</h1>
+            <p class="subtitle">Please supply your valid details below to receive form documentation.</p>
+            <div id="reqError" style="color:var(--crimson);margin-bottom:10px;display:none;font-size:0.85rem;"></div>
+            
+            <div class="form-block">
+                <label>Full Name<span>*</span></label>
+                <input type="text" id="reqName" class="field-txt" placeholder="Type here" required>
+            </div>
+
+            <div class="form-block">
+                <label>Email Address<span>*</span></label>
+                <input type="email" id="reqEmail" class="field-txt" placeholder="Type here" required>
+            </div>
+
+            <div class="form-block">
+                <label>Phone Number<span>*</span></label>
+                <input type="tel" id="reqPhone" class="field-txt" placeholder="Type here" required>
+            </div>
+
+            <div class="form-block">
+                <label>Select Request Type<span>*</span></label>
+                <div class="select-wrapper">
+                    <select id="reqType" class="field-select" required>
+                        <option value="" disabled selected>Select Request Type Here</option>
+                        <option value="volunteer">Volunteer Track</option>
+                        <option value="internship">Internship Track</option>
+                        <option value="professional">Professional Track</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-block" style="padding-bottom: 5px;">
+                <label>Describe your resource needs or programmatic expectations<span>*</span></label>
+                <textarea id="reqMessage" class="field-txt" placeholder="Type here" style="height: 100px; resize: none; width: 100%;" required></textarea>
+            </div>
+
+            <button type="submit" id="reqBtn" class="btn-submit">Submit Request</button>
+            <a href="{% url 'index' %}" class="back-link">&larr; Return to index</a>
+        </form>
+
+        <div id="successMsg">
+            <div class="success-icon">✓</div>
+            <h3 style="font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem;color: var(--navy); margin-bottom: 8px;">Submitted Successfully!</h3>
+            <p style="color: #555; margin-bottom: 20px;">Our programmatic coordination desk will review your data profile and follow up via email shortly.</p>
+            <a href="{% url 'index' %}" style="display: inline-block; padding: 12px 24px; background: var(--navy); color: white; font-weight: 600; text-decoration: none; border-radius: 4px; font-size: 0.9rem;letter-spacing: 0.5px;">Go to indexpage</a>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('reqForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const errEl = document.getElementById('reqError');
+            errEl.style.display = 'none';
+            const btn = document.getElementById('reqBtn');
+            btn.disabled = true; btn.textContent = 'Submitting...';
+            try {
+                const res = await fetch('/api/applications/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: document.getElementById('reqName').value.trim(),
+                        email: document.getElementById('reqEmail').value.trim(),
+                        phone_number: document.getElementById('reqPhone').value.trim(),
+                        request_type: document.getElementById('reqType').value,
+                        message: document.getElementById('reqMessage').value.trim(),
+                    }),
+                });
+                if (res.ok) {
+                    document.getElementById('reqForm').style.display = 'none';
+                    document.getElementById('successMsg').style.display = 'block';
+                } else {
+                    const data = await res.json();
+                    errEl.textContent = Object.values(data).flat().join('. ') || 'Submission failed.';
+                    errEl.style.display = 'block';
+                }
+            } catch (e) {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.style.display = 'block';
+            }
+            btn.disabled = false; btn.textContent = 'Submit Request';
+        });
+    </script>
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>

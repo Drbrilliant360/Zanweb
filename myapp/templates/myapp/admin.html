@@ -1,0 +1,1669 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+<title>Admin Control Center </title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{% static 'myapp/js/shared.js' %}"></script>
+<link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+<style>
+/* ============================================================
+   ROOT TOKENS — kept in sync with the public site's brand system
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --navy: #1C2E5E;
+    --navy-deep: #0F1A36;
+    --navy-darker: #0A1226;
+    --crimson: #A51C30;
+    --crimson-dark: #841623;
+    --gold: #F5C300;
+    --green: #16A34A;
+    --green-bg: #DCFCE7;
+    --amber: #A16207;
+    --amber-bg: #FEF9C3;
+    --red-bg: #FEE2E2;
+    --ink: #0D1525;
+    --ink2: #4A5879;
+    --ink3: #8A9ABE;
+    --bg-app: #EEF2F9;
+    --bg-tint: #EBF3FC;
+    --white: #ffffff;
+    --border: rgba(28, 46, 94, 0.10);
+    --border-soft: rgba(28, 46, 94, 0.06);
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --sh: 0 4px 20px rgba(20, 16, 66, 0.06);
+    --sh-lg: 0 16px 48px rgba(15, 26, 54, 0.14);
+    --sidebar-w: 264px;
+    --topbar-h: 68px;
+}
+html { scroll-behavior: smooth; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-app);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+img { max-width: 100%; display: block; }
+button { font-family: inherit; cursor: pointer; }
+:focus-visible { outline: 2.5px solid var(--navy); outline-offset: 2px; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app-shell { display: flex; min-height: 100vh; }
+
+/* --- Sidebar --- */
+.sidebar {
+    width: var(--sidebar-w);
+    background: linear-gradient(185deg, var(--navy-deep), var(--navy-darker));
+    color: #C9D3EA;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 300;
+    transition: transform 0.28s ease;
+}
+.sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 22px 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-brand img { height: 38px; width: auto; border-radius: 6px; background: rgba(255,255,255,0.9); padding: 3px; }
+.sidebar-brand .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+.sidebar-brand .brand-text strong { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.15rem; color: #fff; letter-spacing: 0.3px; }
+.sidebar-brand .brand-text span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--gold); font-weight: 700; }
+
+.side-nav { flex: 1; overflow-y: auto; padding: 14px 12px 20px; }
+.nav-group { margin-bottom: 14px; }
+.nav-group-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #6E7DA6; padding: 10px 12px 6px; }
+.nav-link {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    background: transparent; border: none; color: #C9D3EA;
+    padding: 10px 12px; border-radius: var(--r-sm); font-size: 0.87rem; font-weight: 600;
+    text-align: left; transition: background 0.15s ease, color 0.15s ease;
+    position: relative;
+}
+.nav-link i { width: 18px; text-align: center; font-size: 0.92rem; color: #8AA0DD; }
+.nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-link.active { background: var(--crimson); color: #fff; box-shadow: 0 4px 14px rgba(165,28,48,0.35); }
+.nav-link.active i { color: #fff; }
+.nav-badge { margin-left: auto; background: var(--gold); color: var(--navy-darker); font-size: 0.68rem; font-weight: 800; padding: 1px 7px; border-radius: 99px; }
+.nav-link.active .nav-badge { background: rgba(255,255,255,0.9); }
+
+.sidebar-foot { padding: 14px 16px 18px; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-foot a { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; font-weight: 600; color: #C9D3EA; padding: 8px 6px; border-radius: var(--r-sm); }
+.sidebar-foot a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(10,18,38,0.5); z-index: 290; }
+
+/* --- Main column --- */
+.main-wrap { flex: 1; margin-left: var(--sidebar-w); min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+    height: var(--topbar-h); background: var(--white); border-bottom: 1px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 0 26px; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 10px rgba(15,26,54,0.03);
+}
+.topbar-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.hamburger-btn { display: none; background: var(--bg-tint); border: none; width: 38px; height: 38px; border-radius: var(--r-sm); align-items: center; justify-content: center; color: var(--navy); font-size: 1.05rem; }
+.page-title-block h1 { font-size: 1.28rem; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.page-title-block p { font-size: 0.78rem; color: var(--ink3); margin-top: 1px; }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.top-search { display: flex; align-items: center; gap: 8px; background: var(--bg-app); border: 1px solid var(--border); border-radius: 99px; padding: 8px 16px; width: 240px; }
+.top-search input { border: none; background: transparent; outline: none; font-size: 0.85rem; width: 100%; color: var(--ink); }
+.top-search i { color: var(--ink3); font-size: 0.85rem; }
+.icon-btn { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--navy); font-size: 1rem; }
+.icon-btn:hover { background: var(--bg-tint); }
+.icon-dot { position: absolute; top: 7px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--crimson); border: 2px solid var(--white); }
+.profile-chip { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; border-radius: 99px; border: 1px solid var(--border); background: var(--white); }
+.profile-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.82rem; }
+.profile-chip .p-info { line-height: 1.15; text-align: left; }
+.profile-chip .p-info strong { font-size: 0.82rem; display: block; }
+.profile-chip .p-info span { font-size: 0.68rem; color: var(--ink3); }
+
+.content-area { padding: 26px; max-width: 1360px; width: 100%; margin: 0 auto; }
+.page { display: none; animation: fadeIn 0.25s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+
+/* ============================================================
+   SHARED UI PRIMITIVES
+   ============================================================ */
+.section-block { background: var(--white); border: 1px solid var(--border-soft); border-radius: var(--r-md); box-shadow: var(--sh); padding: 22px 24px; margin-bottom: 22px; }
+.section-block-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.section-block-head h2 { font-size: 1.08rem; font-weight: 800; color: var(--ink); }
+.section-block-head p.hint { font-size: 0.8rem; color: var(--ink3); margin-top: 3px; max-width: 520px; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: var(--r-sm); padding: 10px 18px; font-size: 0.83rem; font-weight: 700; letter-spacing: 0.2px; transition: filter 0.15s ease, transform 0.05s ease; white-space: nowrap; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { filter: brightness(1.12); }
+.btn-accent { background: var(--crimson); color: #fff; }
+.btn-accent:hover { filter: brightness(1.1); }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+.btn-outline:hover { background: var(--bg-tint); }
+.btn-ghost { background: transparent; color: var(--ink2); }
+.btn-ghost:hover { background: var(--bg-app); }
+.btn-danger-outline { background: transparent; color: var(--crimson); border: 1.5px solid rgba(165,28,48,0.35); }
+.btn-danger-outline:hover { background: var(--red-bg); }
+.btn-sm { padding: 7px 13px; font-size: 0.76rem; }
+.btn-icon-only { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: var(--r-sm); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 22px; }
+.metric-card { background: var(--white); padding: 20px; border-radius: var(--r-md); border: 1px solid var(--border-soft); box-shadow: var(--sh); display: flex; align-items: center; gap: 16px; }
+.metric-icon { width: 46px; height: 46px; min-width: 46px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.metric-info h3 { font-size: 1.7rem; font-weight: 900; color: var(--ink); line-height: 1; }
+.metric-info p { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--ink3); letter-spacing: 0.4px; margin-top: 5px; }
+.metric-trend { margin-left: auto; font-size: 0.72rem; font-weight: 700; }
+.metric-trend.up { color: var(--green); }
+.metric-trend.down { color: var(--crimson); }
+
+.split-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+.split-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.chart-frame { position: relative; height: 230px; }
+
+/* Tables */
+.table-wrapper { width: 100%; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 640px; }
+.data-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); padding: 11px 14px; font-weight: 800; border-bottom: 2px solid var(--bg-app); white-space: nowrap; }
+.data-table td { padding: 13px 14px; border-bottom: 1px solid var(--bg-app); color: var(--ink); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(28,46,94,0.02); }
+.cell-name strong { display: block; font-weight: 700; }
+.cell-name span { font-size: 0.76rem; color: var(--ink3); }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 99px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+.pill.pending { background: var(--amber-bg); color: var(--amber); }
+.pill.approved, .pill.active-pill, .pill.verified { background: var(--green-bg); color: var(--green); }
+.pill.rejected, .pill.suspended { background: var(--red-bg); color: var(--crimson); }
+.pill.unread { background: var(--navy); color: #fff; }
+.pill.read { background: var(--bg-app); color: var(--ink3); }
+
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.act-btn { width: 30px; height: 30px; border-radius: 6px; border: none; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #fff; }
+.act-btn.approve { background: var(--green); }
+.act-btn.reject { background: var(--crimson); }
+.act-btn.edit { background: var(--navy); }
+.act-btn.view { background: var(--ink3); }
+.act-btn.del { background: transparent; color: var(--crimson); border: 1.5px solid rgba(165,28,48,0.3); }
+
+.filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-tab { background: var(--bg-app); border: 1px solid transparent; color: var(--ink2); font-size: 0.78rem; font-weight: 700; padding: 7px 14px; border-radius: 99px; }
+.filter-tab.active { background: var(--navy); color: #fff; }
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-mini { display: flex; align-items: center; gap: 8px; background: var(--bg-app); border-radius: 99px; padding: 8px 14px; min-width: 220px; }
+.search-mini input { border: none; background: transparent; outline: none; font-size: 0.82rem; width: 100%; }
+.search-mini i { color: var(--ink3); font-size: 0.82rem; }
+
+.empty-state { text-align: center; padding: 46px 20px; color: var(--ink3); }
+.empty-state i { font-size: 1.8rem; color: var(--border); margin-bottom: 10px; display: block; }
+.empty-state strong { display: block; color: var(--ink2); font-size: 0.92rem; margin-bottom: 4px; }
+.empty-state p { font-size: 0.82rem; }
+
+/* Editable card lists (priorities, stats, partners, pillars, etc.) */
+.editable-list { display: flex; flex-direction: column; gap: 10px; }
+.edit-row { display: flex; align-items: center; gap: 14px; background: var(--bg-app); border-radius: var(--r-sm); padding: 12px 14px; }
+.edit-row .drag-handle { color: var(--ink3); font-size: 0.9rem; cursor: grab; }
+.edit-row .edit-row-body { flex: 1; min-width: 0; }
+.edit-row .edit-row-body strong { display: block; font-size: 0.88rem; color: var(--ink); }
+.edit-row .edit-row-body span { font-size: 0.78rem; color: var(--ink3); display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.edit-row .badge-num { width: 30px; height: 30px; border-radius: 8px; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+.thumb-swatch { width: 44px; height: 44px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; background: var(--navy); }
+
+/* Card grid (gallery/programs preview) */
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; }
+.mini-card { border: 1px solid var(--border-soft); border-radius: var(--r-md); overflow: hidden; background: var(--white); }
+.mini-card .mini-thumb { height: 110px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.6rem; }
+.mini-card .mini-body { padding: 12px 14px; }
+.mini-card .mini-body strong { font-size: 0.86rem; display: block; margin-bottom: 3px; }
+.mini-card .mini-body p { font-size: 0.76rem; color: var(--ink3); margin-bottom: 10px; }
+.mini-card .mini-actions { display: flex; gap: 6px; }
+
+/* Forms */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid.single { grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+.field label { font-size: 0.76rem; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.3px; }
+.field label .opt { color: var(--ink3); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.field input, .field textarea, .field select {
+    width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-family: inherit; font-size: 0.87rem; color: var(--ink); outline: none; background: var(--white);
+    transition: border-color 0.15s ease;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--navy); }
+.field textarea { resize: vertical; min-height: 76px; }
+.field-note { font-size: 0.72rem; color: var(--ink3); }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--bg-app); }
+.upload-drop { border: 1.5px dashed var(--border); border-radius: var(--r-sm); padding: 18px; text-align: center; color: var(--ink3); font-size: 0.82rem; background: var(--bg-app); cursor: pointer; }
+.upload-drop i { display: block; font-size: 1.3rem; margin-bottom: 6px; color: var(--navy); }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-app); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-row .t-label strong { display: block; font-size: 0.88rem; }
+.toggle-row .t-label span { font-size: 0.78rem; color: var(--ink3); }
+.switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider { position: absolute; inset: 0; background: #D3DBEC; border-radius: 99px; transition: 0.2s; }
+.switch .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+.switch input:checked + .slider { background: var(--navy); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+
+/* Modal */
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(10,18,38,0.55); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+.modal-backdrop.open { display: flex; }
+.modal-box { background: var(--white); border-radius: var(--r-lg); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: var(--sh-lg); animation: popIn 0.18s ease; }
+@keyframes popIn { from { opacity:0; transform: scale(0.96);} to {opacity:1; transform: scale(1);} }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--bg-app); position: sticky; top: 0; background: var(--white); z-index: 2; }
+.modal-head h3 { font-size: 1.08rem; font-weight: 800; }
+.modal-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--bg-app); color: var(--ink2); font-size: 0.95rem; }
+.modal-body { padding: 22px 24px 24px; }
+.modal-box.confirm { max-width: 420px; text-align: center; }
+.modal-box.confirm .modal-body i { font-size: 2.2rem; color: var(--crimson); margin-bottom: 10px; }
+.modal-box.confirm .modal-body h4 { font-size: 1.05rem; margin-bottom: 8px; }
+.modal-box.confirm .modal-body p { font-size: 0.85rem; color: var(--ink3); margin-bottom: 18px; }
+.modal-box.confirm .modal-body .form-actions { justify-content: center; border-top: none; padding-top: 0; }
+
+/* Toasts */
+.toast-stack { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 700; }
+.toast { background: var(--navy-deep); color: #fff; padding: 13px 18px; border-radius: var(--r-sm); font-size: 0.85rem; font-weight: 600; box-shadow: var(--sh-lg); display: flex; align-items: center; gap: 10px; min-width: 240px; animation: slideUp 0.2s ease; }
+.toast i { color: var(--gold); }
+.toast.err i { color: #ff8080; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+
+/* Message preview */
+.msg-row { display: flex; gap: 14px; padding: 14px; border-radius: var(--r-sm); background: var(--bg-app); margin-bottom: 10px; cursor: pointer; align-items: flex-start; transition: background 0.15s ease; }
+.msg-row:hover { background: #E4EBF8; }
+.msg-row.is-unread { border-left: 3px solid var(--crimson); }
+.msg-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+.msg-row .msg-body { flex: 1; min-width: 0; }
+.msg-row .msg-top { display: flex; justify-content: space-between; gap: 10px; }
+.msg-row .msg-top strong { font-size: 0.88rem; }
+.msg-row .msg-top time { font-size: 0.72rem; color: var(--ink3); white-space: nowrap; }
+.msg-row .msg-subject { font-size: 0.82rem; font-weight: 700; margin-top: 2px; color: var(--navy); }
+.msg-row .msg-snippet { font-size: 0.78rem; color: var(--ink3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Activity feed */
+.activity-list { display: flex; flex-direction: column; gap: 4px; }
+.activity-item { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--bg-app); }
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #fff; flex-shrink: 0; }
+.activity-text p { font-size: 0.84rem; }
+.activity-text time { font-size: 0.72rem; color: var(--ink3); }
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .split-2, .split-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); box-shadow: var(--sh-lg); }
+    .sidebar-overlay.open { display: block; }
+    .main-wrap { margin-left: 0; }
+    .hamburger-btn { display: flex; }
+    .top-search { display: none; }
+}
+@media (max-width: 640px) {
+    .metrics-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .content-area { padding: 16px; }
+    .profile-chip .p-info { display: none; }
+    .topbar { padding: 0 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+    <!-- ============================================================
+         SIDEBAR NAVIGATION — the single entry point to every part
+         of the live site's content and data
+         ============================================================ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="{% static 'myapp/head logo.png' %}" alt="Zanchangemakers logo">
+            <div class="brand-text">
+                <strong>ZANCHANGEMAKERS</strong>
+                <span>Admin Control Center</span>
+            </div>
+        </div>
+
+        <nav class="side-nav" aria-label="Admin sections">
+            <div class="nav-group">
+                <button class="nav-link active" data-page="overview"><i class="fa-solid fa-gauge-high"></i> Overview</button>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Website Content</div>
+                <button class="nav-link" data-page="content-home"><i class="fa-solid fa-house"></i> Homepage</button>
+                <button class="nav-link" data-page="content-about"><i class="fa-solid fa-circle-info"></i> About Page</button>
+                <button class="nav-link" data-page="content-programs"><i class="fa-solid fa-diagram-project"></i> Programs</button>
+                <button class="nav-link" data-page="content-gallery"><i class="fa-solid fa-images"></i> Gallery</button>
+                <button class="nav-link" data-page="content-stories"><i class="fa-solid fa-book-open"></i> Stories</button>
+                <button class="nav-link" data-page="content-volunteer"><i class="fa-solid fa-people-group"></i> Volunteer Hub</button>
+                <button class="nav-link" data-page="content-quicklinks"><i class="fa-solid fa-link"></i> Quick Links</button>
+                <button class="nav-link" data-page="content-donate"><i class="fa-solid fa-hand-holding-dollar"></i> Donate Info</button>
+                <button class="nav-link" data-page="content-contact"><i class="fa-solid fa-address-book"></i> Contact Info</button>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Applications</div>
+                <button class="nav-link" data-page="applicants"><i class="fa-solid fa-clipboard-user"></i> Volunteer Applicants <span class="nav-badge" id="nav-badge-applicants">0</span></button>
+                <button class="nav-link" data-page="registrations"><i class="fa-solid fa-user-group"></i> Registered Users</button>
+                <button class="nav-link" data-page="messages"><i class="fa-solid fa-envelope"></i> Contact Messages <span class="nav-badge" id="nav-badge-messages">0</span></button>
+                <button class="nav-link" data-page="donations"><i class="fa-solid fa-sack-dollar"></i> Donations</button>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">System</div>
+                <button class="nav-link" data-page="admins"><i class="fa-solid fa-user-shield"></i> Admin Team</button>
+                <button class="nav-link" data-page="settings"><i class="fa-solid fa-gear"></i> Site Settings</button>
+            </div>
+        </nav>
+
+        <div class="sidebar-foot">
+            <a href="{% url 'index' %}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Live Site</a>
+            <a href="{% url 'login' %}"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</a>
+        </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ============================================================
+         MAIN COLUMN
+         ============================================================ -->
+    <div class="main-wrap">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle navigation menu"><i class="fa-solid fa-bars"></i></button>
+                <div class="page-title-block">
+                    <h1 id="pageTitle">Overview</h1>
+                    <p id="pageSubtitle">A live snapshot of everything happening on the site.</p>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="top-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search applicants, messages…" id="globalSearch" aria-label="Search">
+                </div>
+                <button class="icon-btn" aria-label="Notifications" id="notifBtn"><i class="fa-solid fa-bell"></i><span class="icon-dot" id="notifDot"></span></button>
+                <div class="profile-chip">
+                    <div class="profile-avatar">AA</div>
+                    <div class="p-info"><strong>Ahlam Ahmed</strong><span>Project Lead</span></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-area">
+
+            <!-- ================= OVERVIEW ================= -->
+            <section class="page active" id="page-overview">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background:var(--bg-tint); color:var(--navy);"><i class="fa-solid fa-clipboard-user"></i></div>
+                        <div class="metric-info"><h3 id="mAppTotal">0</h3><p>Total Applicants</p></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background:var(--amber-bg); color:var(--amber);"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="metric-info"><h3 id="mAppPending">0</h3><p>Pending Review</p></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background:var(--green-bg); color:var(--green);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="metric-info"><h3 id="mDonationTotal">$0</h3><p>Donations Raised</p></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background:var(--red-bg); color:var(--crimson);"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="metric-info"><h3 id="mMsgUnread">0</h3><p>Unread Messages</p></div>
+                    </div>
+                </div>
+
+                <div class="split-2">
+                    <div class="section-block">
+                        <div class="section-block-head">
+                            <div><h2>Applications Over Time</h2><p class="hint">Volunteer & program applications received in the last 6 months.</p></div>
+                        </div>
+                        <div class="chart-frame"><canvas id="chartApplications"></canvas></div>
+                    </div>
+                    <div class="section-block">
+                        <div class="section-block-head">
+                            <div><h2>Donations by Channel</h2><p class="hint">Where contributions are coming from.</p></div>
+                        </div>
+                        <div class="chart-frame"><canvas id="chartDonations"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="split-2">
+                    <div class="section-block">
+                        <div class="section-block-head">
+                            <div><h2>Recent Activity</h2><p class="hint">Latest events across the whole website.</p></div>
+                        </div>
+                        <div class="activity-list" id="activityFeed"></div>
+                    </div>
+                    <div class="section-block">
+                        <div class="section-block-head"><div><h2>Quick Actions</h2><p class="hint">Jump straight to a common task.</p></div></div>
+                        <div class="editable-list">
+                            <button class="edit-row" style="border:none;width:100%;text-align:left;" data-page="content-programs">
+                                <div class="thumb-swatch" style="background:var(--navy);"><i class="fa-solid fa-plus"></i></div>
+                                <div class="edit-row-body"><strong>Publish a new program</strong><span>Add a cohort or workshop to the Programs page</span></div>
+                                <i class="fa-solid fa-chevron-right" style="color:var(--ink3);"></i>
+                            </button>
+                            <button class="edit-row" style="border:none;width:100%;text-align:left;" data-page="applicants">
+                                <div class="thumb-swatch" style="background:var(--amber);"><i class="fa-solid fa-user-check"></i></div>
+                                <div class="edit-row-body"><strong>Review pending applicants</strong><span id="qaPendingCount">0 awaiting decision</span></div>
+                                <i class="fa-solid fa-chevron-right" style="color:var(--ink3);"></i>
+                            </button>
+                            <button class="edit-row" style="border:none;width:100%;text-align:left;" data-page="content-gallery">
+                                <div class="thumb-swatch" style="background:var(--crimson);"><i class="fa-solid fa-image"></i></div>
+                                <div class="edit-row-body"><strong>Upload gallery photos</strong><span>Refresh the Community & Impact Gallery</span></div>
+                                <i class="fa-solid fa-chevron-right" style="color:var(--ink3);"></i>
+                            </button>
+                            <button class="edit-row" style="border:none;width:100%;text-align:left;" data-page="messages">
+                                <div class="thumb-swatch" style="background:var(--ink3);"><i class="fa-solid fa-reply"></i></div>
+                                <div class="edit-row-body"><strong>Reply to messages</strong><span id="qaUnreadCount">0 unread</span></div>
+                                <i class="fa-solid fa-chevron-right" style="color:var(--ink3);"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= HOMEPAGE CONTENT ================= -->
+            <section class="page" id="page-content-home">
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Hero Section</h2><p class="hint">The first thing every visitor sees on the homepage.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="hero"><i class="fa-solid fa-check"></i> Save Hero</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field"><label>Eyebrow Tag</label><input type="text" id="hero-eyebrow"></div>
+                        <div class="field"><label>CTA Button Link</label><input type="text" id="hero-ctaLink"></div>
+                        <div class="field full"><label>Headline</label><textarea id="hero-title" rows="2"></textarea></div>
+                        <div class="field full"><label>Subheadline</label><textarea id="hero-subtitle" rows="2"></textarea></div>
+                        <div class="field"><label>CTA Button Text</label><input type="text" id="hero-ctaText"></div>
+                        <div class="field"><label>Background Image</label>
+                            <div class="upload-drop" onclick="document.getElementById('hero-bg-file').click()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span id="hero-bg-name">Click to replace hero background image</span>
+                            </div>
+                            <input type="file" id="hero-bg-file" accept="image/*" class="visually-hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Mission, Vision &amp; Purpose</h2><p class="hint">Shown in the "Our Standard Metrics" panel.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="mission"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field full"><label>Our Mission</label><textarea id="mission-mission" rows="2"></textarea></div>
+                        <div class="field full"><label>Our Vision</label><textarea id="mission-vision" rows="2"></textarea></div>
+                        <div class="field full"><label>Our Core Purpose</label><textarea id="mission-purpose" rows="2"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Strategic Priorities</h2><p class="hint">The numbered pillars in "Our Strategic Priorities".</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('priorities')"><i class="fa-solid fa-plus"></i> Add Priority</button>
+                    </div>
+                    <div class="editable-list" id="list-priorities"></div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Official Recognitions</h2><p class="hint">Awards shown in the "Proven Footprint" stats band.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('stats')"><i class="fa-solid fa-plus"></i> Add Recognition</button>
+                    </div>
+                    <div class="editable-list" id="list-stats"></div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Partners &amp; Stakeholders</h2><p class="hint">Institutional logos shown on the homepage.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('partners')"><i class="fa-solid fa-plus"></i> Add Partner</button>
+                    </div>
+                    <div class="grid-cards" id="list-partners"></div>
+                </div>
+            </section>
+
+            <!-- ================= ABOUT PAGE CONTENT ================= -->
+            <section class="page" id="page-content-about">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Story Intro</h2><p class="hint">"Who We Are" copy on the About page.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="about"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field full"><label>Paragraph 1</label><textarea id="about-p1" rows="3"></textarea></div>
+                        <div class="field full"><label>Paragraph 2</label><textarea id="about-p2" rows="3"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Core Pillars</h2><p class="hint">Empowerment, Volunteerism, Accountability cards.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('pillars')"><i class="fa-solid fa-plus"></i> Add Pillar</button>
+                    </div>
+                    <div class="editable-list" id="list-pillars"></div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Footprint Counters</h2><p class="hint">"Our Footprint in Numbers" stat blocks.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('counters')"><i class="fa-solid fa-plus"></i> Add Counter</button>
+                    </div>
+                    <div class="grid-cards" id="list-counters"></div>
+                </div>
+            </section>
+
+            <!-- ================= PROGRAMS ================= -->
+            <section class="page" id="page-content-programs">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Flagship Programs</h2><p class="hint">Cohorts and initiatives listed on the Programs page.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openListModal('programs')"><i class="fa-solid fa-plus"></i> Add Program</button>
+                    </div>
+                    <div class="grid-cards" id="list-programs"></div>
+                </div>
+            </section>
+
+            <!-- ================= GALLERY ================= -->
+            <section class="page" id="page-content-gallery">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Community &amp; Impact Gallery</h2><p class="hint">Photos shown in the homepage-linked gallery grid.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openListModal('gallery')"><i class="fa-solid fa-plus"></i> Upload Photo</button>
+                    </div>
+                    <div class="grid-cards" id="list-gallery"></div>
+                </div>
+            </section>
+
+            <!-- ================= STORIES ================= -->
+            <section class="page" id="page-content-stories">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Volunteer Stories</h2><p class="hint">Featured stories on the Volunteer Stories page.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openListModal('stories')"><i class="fa-solid fa-plus"></i> Add Story</button>
+                    </div>
+                    <div class="grid-cards" id="list-stories"></div>
+                </div>
+            </section>
+
+            <!-- ================= VOLUNTEER HUB ================= -->
+            <section class="page" id="page-content-volunteer">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Membership Tiers</h2><p class="hint">Individual / Institutional / Premium tracks.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="hubtiers"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="split-3" id="hubTierFields"></div>
+                </div>
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Active Changemakers Profiles</h2><p class="hint">Volunteer profile cards on the Volunteers Hub page.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('profiles')"><i class="fa-solid fa-plus"></i> Add Profile</button>
+                    </div>
+                    <div class="grid-cards" id="list-profiles"></div>
+                </div>
+            </section>
+
+            <!-- ================= QUICK LINKS ================= -->
+            <section class="page" id="page-content-quicklinks">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Career &amp; Job Links</h2><p class="hint">External portals shown on the Quicklinks page.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openListModal('quicklinks')"><i class="fa-solid fa-plus"></i> Add Link</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Label</th><th>URL</th><th></th></tr></thead>
+                            <tbody id="table-quicklinks"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= DONATE INFO ================= -->
+            <section class="page" id="page-content-donate">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Bank Wire Transfer</h2><p class="hint">Details shown on the Support Our Cause page.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="bank"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field"><label>Bank Name</label><input type="text" id="bank-name"></div>
+                        <div class="field"><label>Account Name</label><input type="text" id="bank-acct-name"></div>
+                        <div class="field"><label>Account Number</label><input type="text" id="bank-acct-number"></div>
+                        <div class="field"><label>Branch</label><input type="text" id="bank-branch"></div>
+                        <div class="field"><label>Swift / BIC Code</label><input type="text" id="bank-swift"></div>
+                    </div>
+                </div>
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Mobile Money Channels</h2><p class="hint">USSD and merchant references for mobile giving.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="openListModal('mobilemoney')"><i class="fa-solid fa-plus"></i> Add Channel</button>
+                    </div>
+                    <div class="editable-list" id="list-mobilemoney"></div>
+                </div>
+            </section>
+
+            <!-- ================= CONTACT INFO ================= -->
+            <section class="page" id="page-content-contact">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Contact Information</h2><p class="hint">Shown on the Contact Us page footer-wide.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="contact"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field full"><label>Office Location</label><input type="text" id="contact-address"></div>
+                        <div class="field"><label>Email Address</label><input type="email" id="contact-email"></div>
+                        <div class="field"><label>Phone Number</label><input type="text" id="contact-phone"></div>
+                        <div class="field"><label>Instagram URL</label><input type="text" id="contact-instagram"></div>
+                        <div class="field"><label>Facebook URL</label><input type="text" id="contact-facebook"></div>
+                        <div class="field"><label>X (Twitter) URL</label><input type="text" id="contact-twitter"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= APPLICANTS ================= -->
+            <section class="page" id="page-applicants">
+                <div class="section-block">
+                    <div class="toolbar-row">
+                        <div class="filter-tabs" id="applicantFilterTabs">
+                            <button class="filter-tab active" data-filter="all">All</button>
+                            <button class="filter-tab" data-filter="pending">Pending</button>
+                            <button class="filter-tab" data-filter="approved">Approved</button>
+                            <button class="filter-tab" data-filter="rejected">Rejected</button>
+                        </div>
+                        <div class="search-mini"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="applicantSearch" placeholder="Search applicants…"></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Applicant</th><th>Program</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="table-applicants"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= REGISTERED USERS ================= -->
+            <section class="page" id="page-registrations">
+                <div class="section-block">
+                    <div class="toolbar-row">
+                        <div><h2 style="font-size:1.05rem;font-weight:800;">Registered Volunteers</h2></div>
+                        <div class="search-mini"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="userSearch" placeholder="Search users…"></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="table-users"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= MESSAGES ================= -->
+            <section class="page" id="page-messages">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Inbox</h2><p class="hint">Submissions from the public Contact Us form.</p></div>
+                    </div>
+                    <div id="messageList"></div>
+                </div>
+            </section>
+
+            <!-- ================= DONATIONS ================= -->
+            <section class="page" id="page-donations">
+                <div class="split-3" style="margin-bottom:22px;">
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--green-bg);color:var(--green);"><i class="fa-solid fa-coins"></i></div><div class="metric-info"><h3 id="donTotalAll">$0</h3><p>Total Raised</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--bg-tint);color:var(--navy);"><i class="fa-solid fa-calendar-check"></i></div><div class="metric-info"><h3 id="donTotalMonth">$0</h3><p>This Month</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--amber-bg);color:var(--amber);"><i class="fa-solid fa-clock"></i></div><div class="metric-info"><h3 id="donPendingCount">0</h3><p>Pending Verification</p></div></div>
+                </div>
+                <div class="section-block">
+                    <div class="toolbar-row">
+                        <div><h2 style="font-size:1.05rem;font-weight:800;">Contribution Log</h2></div>
+                        <div class="search-mini"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="donationSearch" placeholder="Search donors…"></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Donor</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="table-donations"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ADMIN TEAM ================= -->
+            <section class="page" id="page-admins">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Admin Team</h2><p class="hint">People who can sign in and manage this website.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openListModal('admins')"><i class="fa-solid fa-user-plus"></i> Add Admin</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+                            <tbody id="table-admins"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= SETTINGS ================= -->
+            <section class="page" id="page-settings">
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>General Settings</h2><p class="hint">Site-wide details used across every page.</p></div>
+                        <button class="btn btn-primary btn-sm" data-save="settings"><i class="fa-solid fa-check"></i> Save</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field"><label>Site Name</label><input type="text" id="set-sitename"></div>
+                        <div class="field"><label>Support Email</label><input type="email" id="set-supportemail"></div>
+                        <div class="field full"><label>Footer Text</label><input type="text" id="set-footer"></div>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="t-label"><strong>Maintenance Mode</strong><span>Show a temporary "under maintenance" notice to visitors.</span></div>
+                        <label class="switch"><input type="checkbox" id="set-maintenance"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="t-label"><strong>Accept New Registrations</strong><span>Allow new volunteers to create accounts from the Register page.</span></div>
+                        <label class="switch"><input type="checkbox" id="set-registrations" checked><span class="slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <div class="section-block-head"><div><h2 style="color:var(--crimson);">Danger Zone</h2><p class="hint">These actions affect data across the whole admin panel.</p></div></div>
+                    <div class="toggle-row">
+                        <div class="t-label"><strong>Reset demo content</strong><span>Restore every section back to its original default values.</span></div>
+                        <button class="btn btn-danger-outline btn-sm" onclick="confirmAction('Reset all admin content back to defaults? This cannot be undone.', resetAllData)"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<!-- ============================================================
+     GENERIC MODAL (add / edit list items)
+     ============================================================ -->
+<div class="modal-backdrop" id="formModalBackdrop">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3 id="formModalTitle">Add Item</h3>
+            <button class="modal-close" onclick="closeFormModal()" aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="dynamicForm" class="form-grid"></form>
+            <div class="form-actions">
+                <button class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitFormModal()"><i class="fa-solid fa-check"></i> Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm dialog -->
+<div class="modal-backdrop" id="confirmModalBackdrop">
+    <div class="modal-box confirm">
+        <div class="modal-body">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h4>Are you sure?</h4>
+            <p id="confirmModalText">This action cannot be undone.</p>
+            <div class="form-actions">
+                <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancel</button>
+                <button class="btn btn-accent" id="confirmModalYes">Yes, continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message viewer -->
+<div class="modal-backdrop" id="msgModalBackdrop">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3 id="msgModalSubject">Message</h3>
+            <button class="modal-close" onclick="closeMsgModal()" aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.82rem;color:var(--ink3);margin-bottom:14px;" id="msgModalMeta"></p>
+            <p style="font-size:0.9rem;line-height:1.7;" id="msgModalBody"></p>
+            <div class="form-actions">
+                <button class="btn btn-danger-outline" id="msgModalDelete">Delete</button>
+                <a class="btn btn-primary" id="msgModalReply" href="#"><i class="fa-solid fa-reply"></i> Reply by Email</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script>
+/* ================================================================
+   ADMIN CONTROL CENTER — application logic
+   This panel is intentionally self-contained (vanilla JS + localStorage)
+   so it can be dropped into the Django project as-is. Every save()
+   call below is the seam where a real deployment should POST to a
+   Django view / DRF endpoint instead of writing to localStorage.
+   ================================================================ */
+(function () {
+    "use strict";
+
+    const STORAGE_KEY = "zcm_admin_data_v1";
+
+    const defaults = {
+        hero: {
+            eyebrow: "Empowering Zanzibar's Youth",
+            title: "Building Tomorrow's Leaders Through Volunteerism & Skills Today",
+            subtitle: "Zanchangemakers equips young people across Zanzibar with leadership training, employability skills, and civic platforms to transform their communities.",
+            ctaText: "Get Involved",
+            ctaLink: "{% url 'volunteer' %}",
+            bgImage: "DSC_3165_BinSeif.jpg.jpeg"
+        },
+        mission: {
+            mission: "Our mission is to empower individuals to offer their skills and time, building stronger, more active communities while providing youth with essential employability skills and leadership experiences.",
+            vision: "The vision is to create a leadership-driven volunteer movement, where each volunteer not only serves but leads, generating lasting impact and progress.",
+            purpose: "To empower individuals to use their time and skills for community development, while equipping youth with critical leadership experiences that prepare them to be changemakers in society."
+        },
+        priorities: [
+            { id: 1, title: "Promote a Culture of Volunteerism", desc: "Encouraging individuals to dedicate their unique skills, labor, and time to localized structural community transformation initiatives." },
+            { id: 2, title: "Equip Youth with Employability & Leadership", desc: "Delivering intentional training cohorts that anchor modern corporate skillsets and dynamic problem-solving competencies." },
+            { id: 3, title: "Strengthen Resilience & Civic Participation", desc: "Building active channels for youth to interact seamlessly with local governance structures and community needs." }
+        ],
+        stats: [
+            { id: 1, year: "2021", desc: "Winner: Ideathon for Zanzibar Youth" },
+            { id: 2, year: "2022", desc: "1st Winner: Outstanding Youth in Education (Zanzibar Youth Awards)" },
+            { id: 3, year: "2024", desc: "Winner: USAID TUSHIRIKI PAMOJA Kick Start Grant" }
+        ],
+        partners: [
+            { id: 1, name: "Revolutionary Government of Zanzibar (SMZ)" },
+            { id: 2, name: "Youth Volunteers Forum (YVF)" },
+            { id: 3, name: "Ideathon for Tanzanian Youth" },
+            { id: 4, name: "International Republican Institute" }
+        ],
+        about: {
+            p1: "Zanchangemakers is a premier youth-focused initiative dedicated to cultivating civic responsibility, practical workforce skillsets, and community-driven action across Zanzibar and the wider United Republic of Tanzania.",
+            p2: "We work at the intersection of local community needs and emerging youth potential, offering pathways that transform passionate individuals into highly capable social change leaders, innovators, and modern workforce professionals."
+        },
+        pillars: [
+            { id: 1, title: "Empowerment", desc: "We provide tools, training models, and dynamic spaces that empower youth to build scalable local solutions for regional issues." },
+            { id: 2, title: "Volunteerism", desc: "Fostering an ecosystem of community-first values, structural service, and impact-driven cross-functional teamwork models." },
+            { id: 3, title: "Accountability", desc: "Nurturing professional governance, transparent community responsibility, and clear socio-civic leadership practices." }
+        ],
+        counters: [
+            { id: 1, value: "500+", label: "Youth Trained" },
+            { id: 2, value: "5+", label: "Completed Cohorts" },
+            { id: 3, value: "10k+", label: "Service Hours Logged" },
+            { id: 4, value: "20+", label: "Partner Organizations" }
+        ],
+        programs: [
+            { id: 1, title: "Youth Volunteers Forum (YVF)", tag: "Leadership & Volunteerism", desc: "Our foundational workspace cohort platform designed to integrate local youth into direct, strategic community-driven impact campaigns.", bullets: "Core Leadership Principles & Project Architecture\nCross-Regional Networking Systems Across Tanzania\nDirect Field Campaign Deployments\nMentorship loops with established corporate and civic executives", ctaText: "Apply For Next Cohort", ctaLink: "https://docs.google.com/forms" },
+            { id: 2, title: "Structured Career Placement & Internships", tag: "Career Readiness & Internships", desc: "Bridging the transitional ecosystem between academic landscapes and corporate professional settings with direct organizational matches.", bullets: "Corporate Work-Readiness and Communication Training\nStrategic Industry Partnership Alignment Maps\nDirect placement tracking setups and accountability audits", ctaText: "Request Application Form", ctaLink: "{% url 'request' %}" }
+        ],
+        gallery: [
+            { id: 1, caption: "Youth Volunteers Forum" },
+            { id: 2, caption: "Leadership Training Workshop" },
+            { id: 3, caption: "Community Outreach Services" }
+        ],
+        stories: [
+            { id: 1, tag: "Volunteer from index", title: "Gaisce at index with Orla Leahy", desc: "Orla Leahy is a student from Cork who is currently going for her Gaisce Gold…" },
+            { id: 2, tag: "Volunteer Stories", title: "Volunteering at Rio 2016", desc: "Mary O'Leary was one of a handful of Irish volunteers at last month's Rio Olympics…" }
+        ],
+        hubtiers: {
+            t1title: "Individual Track", t1desc: "Standard profile setup for individual agents seeking regional deployment tracks and certificate credentials.", t1price: "Free / Standard",
+            t2title: "Institutional Membership", t2desc: "Tailored interface setups for academic institutions, NGOs, and corporate teams driving localized field solutions.", t2price: "Institutional Tier",
+            t3title: "Premium Network", t3desc: "Extended operational dashboard rights, cross-regional placement lists, and advanced executive mentorship tracks.", t3price: "Premium access"
+        },
+        profiles: [
+            { id: 1, name: "Ibrahim Salim", role: "Community Volunteer", bio: "Passionate about structured community development, project strategy frameworks, and youth empowerment initiatives across Tanzania.", tags: "Leadership, Communication, Zanzibar" },
+            { id: 2, name: "Fatma Rashid", role: "Program Coordinator", bio: "Specializes in managing structured data-driven training workshops and organizing educational placement tracks for young professionals.", tags: "Management, Education, Dar es Salaam" },
+            { id: 3, name: "Said Ali", role: "Technical Instructor", bio: "Dedicated to delivering digital literacy courses and practical tech-stack implementation frameworks to localized resource centers.", tags: "Technology, Mentorship, Pemba" }
+        ],
+        quicklinks: [
+            { id: 1, label: "Zanzibar Ajira Portal", url: "https://www.ajira.go.tz" },
+            { id: 2, label: "Public Service Recruitment Secretariat", url: "https://www.utumishi.go.tz" },
+            { id: 3, label: "LinkedIn Jobs", url: "https://www.linkedin.com/jobs" },
+            { id: 4, label: "ReliefWeb Jobs", url: "https://reliefweb.int/jobs" },
+            { id: 5, label: "Impactpool", url: "https://www.impactpool.org" }
+        ],
+        bank: { name: "People's Bank of Zanzibar (PBZ)", acctName: "Zanchangemakers Initiative", acctNumber: "040001234567", branch: "Zanzibar Main Branch", swift: "PBZATZTZXXX" },
+        mobilemoney: [
+            { id: 1, provider: "Zantel EzyPesa", detail: "*150*02# → Merchant ID: 889900" },
+            { id: 2, provider: "Airtel Money", detail: "*150*60# → Business Number: 445566" },
+            { id: 3, provider: "Vodacom M-Pesa", detail: "Reference Name: ZANCHANGEMAKERS" }
+        ],
+        contact: { address: "Zanzibar Town, Zanzibar, Tanzania", email: "info@zanchangemakers.org", phone: "+255 712 345 678", instagram: "https://instagram.com", facebook: "https://facebook.com", twitter: "https://x.com" },
+        applicants: [
+            { id: 1, name: "Amina Juma", email: "amina.juma@example.com", phone: "+255 715 220 341", program: "Youth Volunteers Forum (YVF)", date: "2026-06-28", status: "pending" },
+            { id: 2, name: "Hassan Mrisho", email: "hassan.m@example.com", phone: "+255 782 991 004", program: "Career Placement & Internships", date: "2026-06-25", status: "approved" },
+            { id: 3, name: "Zainab Khamis", email: "zainab.k@example.com", phone: "+255 654 118 772", program: "Youth Volunteers Forum (YVF)", date: "2026-06-20", status: "pending" },
+            { id: 4, name: "Omar Suleiman", email: "omar.s@example.com", phone: "+255 713 004 552", program: "Career Placement & Internships", date: "2026-06-14", status: "rejected" }
+        ],
+        users: [
+            { id: 1, name: "Fatma Rashid", email: "fatma.rashid@example.com", joined: "2026-05-02", role: "Volunteer", status: "active" },
+            { id: 2, name: "Ibrahim Salim", email: "ibrahim.salim@example.com", joined: "2026-04-18", role: "Volunteer", status: "active" },
+            { id: 3, name: "Said Ali", email: "said.ali@example.com", joined: "2026-03-30", role: "Volunteer", status: "suspended" }
+        ],
+        messages: [
+            { id: 1, name: "Grace Mwakalinga", email: "grace.m@example.com", subject: "Partnership inquiry", message: "Hello, our organization would like to explore a training partnership for the upcoming cohort. Could someone reach out to discuss details?", date: "2026-07-04", read: false },
+            { id: 2, name: "David Kessy", email: "david.kessy@example.com", subject: "Volunteering hours certificate", message: "I completed 40 hours with the YVF program last month and need a certificate for my university application.", date: "2026-07-02", read: false },
+            { id: 3, name: "Neema Joseph", email: "neema.j@example.com", subject: "Donation receipt", message: "I made a mobile money donation on Tuesday and would appreciate an official receipt for our records.", date: "2026-06-29", read: true }
+        ],
+        donations: [
+            { id: 1, donor: "Neema Joseph", amount: 50000, method: "Mobile Money", date: "2026-06-29", status: "verified" },
+            { id: 2, donor: "Anonymous", amount: 120, method: "Bank Transfer", date: "2026-06-22", status: "verified" },
+            { id: 3, donor: "Peter Mushi", amount: 75000, method: "Mobile Money", date: "2026-07-01", status: "pending" }
+        ],
+        admins: [
+            { id: 1, name: "Ahlam Ahmed", email: "ahlam@zanchangemakers.org", role: "Super Admin" },
+            { id: 2, name: "Juma Bakari", email: "juma@zanchangemakers.org", role: "Program Lead" }
+        ],
+        settings: { sitename: "Zanchangemakers", supportemail: "info@zanchangemakers.org", footer: "© 2026 Zanchangemakers. All rights reserved.", maintenance: false, registrations: true }
+    };
+
+    let data = loadData();
+
+    function loadData() {
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return Object.assign({}, JSON.parse(JSON.stringify(defaults)), JSON.parse(raw));
+        } catch (e) { /* fall through to defaults */ }
+        return JSON.parse(JSON.stringify(defaults));
+    }
+    function persist() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+        catch (e) { toast("Could not save locally — storage may be full.", true); }
+    }
+
+    /* ---------- Load data from API ---------- */
+    async function loadAdminFromAPI() {
+        try {
+            if (typeof apiGet === 'undefined') return;
+            var dash = await apiGet('/api/dashboard/admin/');
+            if (dash) {
+                document.getElementById('mAppTotal').textContent = dash.total_volunteers || '0';
+                document.getElementById('mAppPending').textContent = dash.active_programs || '0';
+                if (dash.grants_awarded) {
+                    document.getElementById('mDonationTotal').textContent = '$' + Number(dash.grants_awarded).toLocaleString();
+                }
+            }
+            var msgs = await apiGet('/api/contact-messages/list/');
+            if (msgs) {
+                var list = msgs.results || msgs;
+                if (list.length) {
+                    data.messages = list.map(function(m, i) {
+                        return { id: i + 1, name: m.name || 'Unknown', email: m.email || '', subject: m.subject || 'No Subject', message: m.message || '', date: m.created_at ? m.created_at.slice(0, 10) : '', read: false };
+                    });
+                }
+            }
+            var dons = await apiGet('/api/donations/');
+            if (dons) {
+                var dlist = dons.results || dons;
+                if (dlist.length) {
+                    data.donations = dlist.map(function(d, i) {
+                        return { id: i + 1, donor: d.full_name || d.donor_name || 'Anonymous', amount: parseFloat(d.amount) || 0, method: d.payment_method || 'Mobile Money', date: d.created_at ? d.created_at.slice(0, 10) : '', status: d.status || 'pending' };
+                    });
+                }
+            }
+            var apps = await apiGet('/api/applications/');
+            if (apps) {
+                var alist = apps.results || apps;
+                if (alist.length) {
+                    data.applicants = alist.map(function(a, i) {
+                        var progName = a.program ? (a.program.name || a.program.title || String(a.program)) : 'N/A';
+                        return { id: i + 1, name: (a.first_name || '') + ' ' + (a.last_name || ''), email: a.email || '', phone: a.phone || '', program: progName, date: a.created_at ? a.created_at.slice(0, 10) : '', status: a.status || 'pending' };
+                    });
+                }
+            }
+            persist();
+        } catch(e) { /* keep localStorage fallback */ }
+    }
+    function nextId(arr) { return arr.length ? Math.max(...arr.map(i => i.id)) + 1 : 1; }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtDate(d) { try { return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return d; } }
+    function initials(name) { return (name || "?").split(" ").filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join(""); }
+    function palette(i) { const p = ["#1C2E5E", "#A51C30", "#F5C300", "#16A34A", "#0EA5E9", "#8A9ABE"]; return p[i % p.length]; }
+
+    /* ---------------- Toasts ---------------- */
+    function toast(msg, isErr) {
+        const stack = document.getElementById("toastStack");
+        const el = document.createElement("div");
+        el.className = "toast" + (isErr ? " err" : "");
+        el.innerHTML = `<i class="fa-solid ${isErr ? "fa-circle-exclamation" : "fa-circle-check"}"></i><span>${esc(msg)}</span>`;
+        stack.appendChild(el);
+        setTimeout(() => { el.style.opacity = "0"; el.style.transition = "opacity .25s"; setTimeout(() => el.remove(), 260); }, 2600);
+    }
+    window.toast = toast;
+
+    /* ---------------- Confirm modal ---------------- */
+    const confirmBackdrop = document.getElementById("confirmModalBackdrop");
+    function confirmAction(text, onYes) {
+        document.getElementById("confirmModalText").textContent = text;
+        confirmBackdrop.classList.add("open");
+        const yesBtn = document.getElementById("confirmModalYes");
+        const handler = () => { onYes(); closeConfirmModal(); yesBtn.removeEventListener("click", handler); };
+        yesBtn.replaceWith(yesBtn.cloneNode(true));
+        document.getElementById("confirmModalYes").addEventListener("click", handler);
+    }
+    function closeConfirmModal() { confirmBackdrop.classList.remove("open"); }
+    window.confirmAction = confirmAction;
+    window.closeConfirmModal = closeConfirmModal;
+
+    /* ---------------- Navigation / routing ---------------- */
+    const pageMeta = {
+        "overview": ["Overview", "A live snapshot of everything happening on the site."],
+        "content-home": ["Homepage", "Edit the hero, mission and highlight sections visitors see first."],
+        "content-about": ["About Page", "Update the story, pillars and impact counters."],
+        "content-programs": ["Programs", "Manage the flagship cohorts and initiatives."],
+        "content-gallery": ["Gallery", "Curate the Community & Impact photo grid."],
+        "content-stories": ["Stories", "Manage featured volunteer stories."],
+        "content-volunteer": ["Volunteer Hub", "Edit membership tiers and changemaker profiles."],
+        "content-quicklinks": ["Quick Links", "Manage the curated job & career portals."],
+        "content-donate": ["Donate Info", "Keep banking and mobile money details current."],
+        "content-contact": ["Contact Info", "Update office, email, phone and socials."],
+        "applicants": ["Volunteer Applicants", "Review and decide on incoming applications."],
+        "registrations": ["Registered Users", "Everyone with an account on the site."],
+        "messages": ["Contact Messages", "Inbox for the public contact form."],
+        "donations": ["Donations", "Track every contribution received."],
+        "admins": ["Admin Team", "People with access to this control center."],
+        "settings": ["Site Settings", "Global configuration for the whole website."]
+    };
+
+    function goToPage(key) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        const target = document.getElementById("page-" + key);
+        if (target) target.classList.add("active");
+        document.querySelectorAll(".nav-link[data-page]").forEach(b => b.classList.toggle("active", b.dataset.page === key));
+        const meta = pageMeta[key] || [key, ""];
+        document.getElementById("pageTitle").textContent = meta[0];
+        document.getElementById("pageSubtitle").textContent = meta[1];
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("open");
+        window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    }
+    document.querySelectorAll("[data-page]").forEach(el => el.addEventListener("click", () => goToPage(el.dataset.page)));
+
+    const hamburgerBtn = document.getElementById("hamburgerBtn");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    hamburgerBtn.addEventListener("click", () => { sidebar.classList.toggle("open"); overlay.classList.toggle("open"); });
+    overlay.addEventListener("click", () => { sidebar.classList.remove("open"); overlay.classList.remove("open"); });
+
+    /* ---------------- Simple field bindings (save buttons) ---------------- */
+    const fieldMaps = {
+        hero: { "hero-eyebrow": "eyebrow", "hero-title": "title", "hero-subtitle": "subtitle", "hero-ctaText": "ctaText", "hero-ctaLink": "ctaLink" },
+        mission: { "mission-mission": "mission", "mission-vision": "vision", "mission-purpose": "purpose" },
+        about: { "about-p1": "p1", "about-p2": "p2" },
+        bank: { "bank-name": "name", "bank-acct-name": "acctName", "bank-acct-number": "acctNumber", "bank-branch": "branch", "bank-swift": "swift" },
+        contact: { "contact-address": "address", "contact-email": "email", "contact-phone": "phone", "contact-instagram": "instagram", "contact-facebook": "facebook", "contact-twitter": "twitter" },
+        settings: { "set-sitename": "sitename", "set-supportemail": "supportemail", "set-footer": "footer" }
+    };
+    function fillFields(key) {
+        const map = fieldMaps[key];
+        if (!map) return;
+        Object.entries(map).forEach(([elId, dataKey]) => {
+            const el = document.getElementById(elId);
+            if (el) el.value = data[key][dataKey] || "";
+        });
+    }
+    function readFields(key) {
+        const map = fieldMaps[key];
+        Object.entries(map).forEach(([elId, dataKey]) => {
+            const el = document.getElementById(elId);
+            if (el) data[key][dataKey] = el.value;
+        });
+    }
+    document.querySelectorAll("[data-save]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const key = btn.dataset.save;
+            if (key === "hero" || key === "mission" || key === "about" || key === "bank" || key === "contact") {
+                readFields(key);
+            } else if (key === "settings") {
+                readFields("settings");
+                data.settings.maintenance = document.getElementById("set-maintenance").checked;
+                data.settings.registrations = document.getElementById("set-registrations").checked;
+            } else if (key === "hubtiers") {
+                ["t1title", "t1desc", "t1price", "t2title", "t2desc", "t2price", "t3title", "t3desc", "t3price"].forEach(f => {
+                    const el = document.getElementById("hub-" + f);
+                    if (el) data.hubtiers[f] = el.value;
+                });
+            }
+            persist();
+            toast("Changes saved successfully.");
+        });
+    });
+    document.getElementById("hero-bg-file").addEventListener("change", e => {
+        if (e.target.files[0]) {
+            data.hero.bgImage = e.target.files[0].name;
+            document.getElementById("hero-bg-name").textContent = "Selected: " + e.target.files[0].name + " (uploads on save)";
+        }
+    });
+
+    /* ---------------- Generic list-modal system ---------------- */
+    const listConfigs = {
+        priorities: { title: "Strategic Priority", fields: [{ k: "title", label: "Title", type: "text", full: true }, { k: "desc", label: "Description", type: "textarea", full: true }] },
+        stats: { title: "Recognition", fields: [{ k: "year", label: "Year", type: "text" }, { k: "desc", label: "Description", type: "text" }] },
+        partners: { title: "Partner", fields: [{ k: "name", label: "Organization Name", type: "text", full: true }] },
+        pillars: { title: "Core Pillar", fields: [{ k: "title", label: "Title", type: "text", full: true }, { k: "desc", label: "Description", type: "textarea", full: true }] },
+        counters: { title: "Footprint Counter", fields: [{ k: "value", label: "Value (e.g. 500+)", type: "text" }, { k: "label", label: "Label", type: "text" }] },
+        programs: { title: "Program", fields: [{ k: "title", label: "Program Title", type: "text", full: true }, { k: "tag", label: "Category Tag", type: "text" }, { k: "ctaText", label: "Button Text", type: "text" }, { k: "desc", label: "Description", type: "textarea", full: true }, { k: "bullets", label: "Highlights (one per line)", type: "textarea", full: true }, { k: "ctaLink", label: "Apply / Info Link", type: "text", full: true }] },
+        gallery: { title: "Gallery Photo", fields: [{ k: "caption", label: "Caption", type: "text", full: true }, { k: "_upload", label: "Photo", type: "file", full: true }] },
+        stories: { title: "Volunteer Story", fields: [{ k: "title", label: "Story Title", type: "text", full: true }, { k: "tag", label: "Tag", type: "text" }, { k: "desc", label: "Summary", type: "textarea", full: true }] },
+        profiles: { title: "Volunteer Profile", fields: [{ k: "name", label: "Name", type: "text" }, { k: "role", label: "Role", type: "text" }, { k: "bio", label: "Bio", type: "textarea", full: true }, { k: "tags", label: "Tags (comma separated)", type: "text", full: true }] },
+        quicklinks: { title: "Quick Link", fields: [{ k: "label", label: "Label", type: "text", full: true }, { k: "url", label: "URL", type: "text", full: true }] },
+        mobilemoney: { title: "Mobile Money Channel", fields: [{ k: "provider", label: "Provider", type: "text", full: true }, { k: "detail", label: "USSD / Reference Detail", type: "text", full: true }] },
+        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }] }
+    };
+
+    let modalCtx = { listKey: null, editId: null };
+    const formModalBackdrop = document.getElementById("formModalBackdrop");
+    const dynamicForm = document.getElementById("dynamicForm");
+
+    function openListModal(listKey, editId) {
+        const cfg = listConfigs[listKey];
+        modalCtx = { listKey, editId: editId || null };
+        document.getElementById("formModalTitle").textContent = (editId ? "Edit " : "Add ") + cfg.title;
+        dynamicForm.innerHTML = "";
+        const existing = editId ? data[listKey].find(i => i.id === editId) : null;
+        cfg.fields.forEach(f => {
+            const wrap = document.createElement("div");
+            wrap.className = "field" + (f.full ? " full" : "");
+            const label = document.createElement("label");
+            label.textContent = f.label;
+            wrap.appendChild(label);
+            let input;
+            if (f.type === "textarea") { input = document.createElement("textarea"); input.rows = 3; }
+            else if (f.type === "select") {
+                input = document.createElement("select");
+                f.options.forEach(o => { const opt = document.createElement("option"); opt.value = o; opt.textContent = o; input.appendChild(opt); });
+            } else if (f.type === "file") {
+                input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+            } else { input = document.createElement("input"); input.type = "text"; }
+            input.id = "f-" + f.k;
+            input.dataset.key = f.k;
+            if (existing && f.type !== "file") input.value = existing[f.k] || "";
+            wrap.appendChild(input);
+            dynamicForm.appendChild(wrap);
+        });
+        formModalBackdrop.classList.add("open");
+    }
+    function closeFormModal() { formModalBackdrop.classList.remove("open"); }
+    function submitFormModal() {
+        const { listKey, editId } = modalCtx;
+        const cfg = listConfigs[listKey];
+        const record = {};
+        let valid = true;
+        cfg.fields.forEach(f => {
+            if (f.type === "file") return;
+            const el = document.getElementById("f-" + f.k);
+            record[f.k] = el.value.trim();
+            if (!record[f.k] && f.full) valid = false;
+        });
+        if (!valid) { toast("Please fill in the required fields.", true); return; }
+        if (editId) {
+            const idx = data[listKey].findIndex(i => i.id === editId);
+            data[listKey][idx] = Object.assign({}, data[listKey][idx], record);
+        } else {
+            record.id = nextId(data[listKey]);
+            data[listKey].push(record);
+        }
+        persist();
+        closeFormModal();
+        renderAll();
+        toast(editId ? "Item updated." : "Item added.");
+    }
+    window.openListModal = openListModal;
+    window.closeFormModal = closeFormModal;
+    window.submitFormModal = submitFormModal;
+
+    function deleteListItem(listKey, id) {
+        confirmAction("Remove this item from the site?", () => {
+            data[listKey] = data[listKey].filter(i => i.id !== id);
+            persist();
+            renderAll();
+            toast("Item removed.");
+        });
+    }
+    window.deleteListItem = deleteListItem;
+
+    /* ---------------- Renderers: simple editable rows ---------------- */
+    function renderEditRow(container, listKey, item, badge, titleKey, descKey) {
+        const row = document.createElement("div");
+        row.className = "edit-row";
+        row.innerHTML = `
+            <div class="badge-num">${esc(badge)}</div>
+            <div class="edit-row-body"><strong>${esc(item[titleKey])}</strong><span>${esc(item[descKey] || "")}</span></div>
+            <div class="row-actions">
+                <button class="act-btn edit" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                <button class="act-btn del" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+            </div>`;
+        row.querySelector(".edit").addEventListener("click", () => openListModal(listKey, item.id));
+        row.querySelector(".del").addEventListener("click", () => deleteListItem(listKey, item.id));
+        container.appendChild(row);
+    }
+
+    function renderPriorities() {
+        const el = document.getElementById("list-priorities"); el.innerHTML = "";
+        data.priorities.forEach((p, i) => renderEditRow(el, "priorities", p, String(i + 1).padStart(2, "0"), "title", "desc"));
+    }
+    function renderStats() {
+        const el = document.getElementById("list-stats"); el.innerHTML = "";
+        data.stats.forEach(s => renderEditRow(el, "stats", s, s.year, "desc", ""));
+    }
+    function renderPartners() {
+        const el = document.getElementById("list-partners"); el.innerHTML = "";
+        data.partners.forEach((p, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};"><i class="fa-solid fa-handshake"></i></div>
+                <div class="mini-body">
+                    <strong>${esc(p.name)}</strong><p>Institutional partner</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('partners',${p.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('partners',${p.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderPillars() {
+        const el = document.getElementById("list-pillars"); el.innerHTML = "";
+        data.pillars.forEach((p, i) => renderEditRow(el, "pillars", p, String(i + 1).padStart(2, "0"), "title", "desc"));
+    }
+    function renderCounters() {
+        const el = document.getElementById("list-counters"); el.innerHTML = "";
+        data.counters.forEach((c, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};font-weight:900;">${esc(c.value)}</div>
+                <div class="mini-body">
+                    <strong>${esc(c.label)}</strong><p>Impact counter</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('counters',${c.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('counters',${c.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderPrograms() {
+        const el = document.getElementById("list-programs"); el.innerHTML = "";
+        if (!data.programs.length) { el.innerHTML = emptyState("fa-diagram-project", "No programs yet", "Add your first flagship program."); return; }
+        data.programs.forEach((p, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};"><i class="fa-solid fa-diagram-project"></i></div>
+                <div class="mini-body">
+                    <strong>${esc(p.title)}</strong><p>${esc(p.tag || "")}</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('programs',${p.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('programs',${p.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderGallery() {
+        const el = document.getElementById("list-gallery"); el.innerHTML = "";
+        if (!data.gallery.length) { el.innerHTML = emptyState("fa-images", "Gallery is empty", "Upload photos to populate the site grid."); return; }
+        data.gallery.forEach((g, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};"><i class="fa-solid fa-image"></i></div>
+                <div class="mini-body">
+                    <strong>${esc(g.caption)}</strong><p>Gallery photo</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('gallery',${g.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('gallery',${g.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderStories() {
+        const el = document.getElementById("list-stories"); el.innerHTML = "";
+        data.stories.forEach((s, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};"><i class="fa-solid fa-book-open"></i></div>
+                <div class="mini-body">
+                    <strong>${esc(s.title)}</strong><p>${esc(s.tag)}</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('stories',${s.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('stories',${s.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderHubTiers() {
+        const el = document.getElementById("hubTierFields");
+        const t = data.hubtiers;
+        el.innerHTML = [1, 2, 3].map(n => `
+            <div class="field full">
+                <label>Tier ${n} Title</label><input id="hub-t${n}title" value="${esc(t["t" + n + "title"])}">
+                <label class="field-note" style="margin-top:8px;">Description</label><textarea id="hub-t${n}desc" rows="2">${esc(t["t" + n + "desc"])}</textarea>
+                <label class="field-note" style="margin-top:8px;">Price / Tier Label</label><input id="hub-t${n}price" value="${esc(t["t" + n + "price"])}">
+            </div>`).join("");
+    }
+    function renderProfiles() {
+        const el = document.getElementById("list-profiles"); el.innerHTML = "";
+        data.profiles.forEach((p, i) => {
+            el.innerHTML += `
+            <div class="mini-card">
+                <div class="mini-thumb" style="background:${palette(i)};">${esc(initials(p.name))}</div>
+                <div class="mini-body">
+                    <strong>${esc(p.name)}</strong><p>${esc(p.role)}</p>
+                    <div class="mini-actions">
+                        <button class="act-btn edit" onclick="openListModal('profiles',${p.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="act-btn del" onclick="deleteListItem('profiles',${p.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    function renderQuicklinks() {
+        const el = document.getElementById("table-quicklinks"); el.innerHTML = "";
+        data.quicklinks.forEach(q => {
+            el.innerHTML += `<tr>
+                <td><strong>${esc(q.label)}</strong></td>
+                <td style="color:var(--ink3);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(q.url)}</td>
+                <td><div class="row-actions">
+                    <button class="act-btn edit" onclick="openListModal('quicklinks',${q.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="act-btn del" onclick="deleteListItem('quicklinks',${q.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+    function renderMobileMoney() {
+        const el = document.getElementById("list-mobilemoney"); el.innerHTML = "";
+        data.mobilemoney.forEach((m, i) => renderEditRow(el, "mobilemoney", m, i + 1, "provider", "detail"));
+    }
+    function renderAdmins() {
+        const el = document.getElementById("table-admins"); el.innerHTML = "";
+        data.admins.forEach(a => {
+            el.innerHTML += `<tr>
+                <td class="cell-name"><strong>${esc(a.name)}</strong></td>
+                <td>${esc(a.email)}</td>
+                <td><span class="pill approved">${esc(a.role)}</span></td>
+                <td><div class="row-actions">
+                    <button class="act-btn edit" onclick="openListModal('admins',${a.id})" aria-label="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="act-btn del" onclick="deleteListItem('admins',${a.id})" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+
+    function emptyState(icon, title, sub) {
+        return `<div class="empty-state" style="grid-column:1/-1;"><i class="fa-solid ${icon}"></i><strong>${esc(title)}</strong><p>${esc(sub)}</p></div>`;
+    }
+
+    /* ---------------- Applicants ---------------- */
+    let applicantFilter = "all";
+    function renderApplicants() {
+        const el = document.getElementById("table-applicants"); el.innerHTML = "";
+        const q = (document.getElementById("applicantSearch").value || "").toLowerCase();
+        const rows = data.applicants.filter(a =>
+            (applicantFilter === "all" || a.status === applicantFilter) &&
+            (a.name.toLowerCase().includes(q) || a.program.toLowerCase().includes(q))
+        );
+        if (!rows.length) { el.innerHTML = `<tr><td colspan="5">${emptyState("fa-clipboard-user", "No applicants found", "Try a different filter or search term.")}</td></tr>`; return; }
+        rows.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(a => {
+            el.innerHTML += `<tr>
+                <td class="cell-name"><strong>${esc(a.name)}</strong><span>${esc(a.email)}</span></td>
+                <td>${esc(a.program)}</td>
+                <td>${fmtDate(a.date)}</td>
+                <td><span class="pill ${a.status}">${esc(a.status)}</span></td>
+                <td><div class="row-actions">
+                    ${a.status !== "approved" ? `<button class="act-btn approve" title="Approve" onclick="setApplicantStatus(${a.id},'approved')"><i class="fa-solid fa-check"></i></button>` : ""}
+                    ${a.status !== "rejected" ? `<button class="act-btn reject" title="Reject" onclick="setApplicantStatus(${a.id},'rejected')"><i class="fa-solid fa-xmark"></i></button>` : ""}
+                    <button class="act-btn del" title="Delete" onclick="deleteListItem('applicants',${a.id})"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+    window.setApplicantStatus = function (id, status) {
+        const item = data.applicants.find(a => a.id === id);
+        if (item) { item.status = status; persist(); renderAll(); toast("Applicant marked as " + status + "."); }
+    };
+    document.getElementById("applicantFilterTabs").addEventListener("click", e => {
+        const btn = e.target.closest(".filter-tab");
+        if (!btn) return;
+        document.querySelectorAll("#applicantFilterTabs .filter-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        applicantFilter = btn.dataset.filter;
+        renderApplicants();
+    });
+    document.getElementById("applicantSearch").addEventListener("input", renderApplicants);
+
+    /* ---------------- Registered users ---------------- */
+    function renderUsers() {
+        const el = document.getElementById("table-users"); el.innerHTML = "";
+        const q = (document.getElementById("userSearch").value || "").toLowerCase();
+        const rows = data.users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+        if (!rows.length) { el.innerHTML = `<tr><td colspan="6">${emptyState("fa-user-group", "No users found", "Try a different search term.")}</td></tr>`; return; }
+        rows.forEach(u => {
+            el.innerHTML += `<tr>
+                <td class="cell-name"><strong>${esc(u.name)}</strong></td>
+                <td>${esc(u.email)}</td>
+                <td>${fmtDate(u.joined)}</td>
+                <td>${esc(u.role)}</td>
+                <td><span class="pill ${u.status === "active" ? "active-pill" : "suspended"}">${esc(u.status)}</span></td>
+                <td><div class="row-actions">
+                    <button class="act-btn ${u.status === "active" ? "reject" : "approve"}" title="${u.status === "active" ? "Suspend" : "Activate"}" onclick="toggleUserStatus(${u.id})"><i class="fa-solid ${u.status === "active" ? "fa-user-slash" : "fa-user-check"}"></i></button>
+                    <button class="act-btn del" title="Delete" onclick="deleteListItem('users',${u.id})"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+    window.toggleUserStatus = function (id) {
+        const u = data.users.find(x => x.id === id);
+        if (u) { u.status = u.status === "active" ? "suspended" : "active"; persist(); renderAll(); toast("User status updated."); }
+    };
+    document.getElementById("userSearch").addEventListener("input", renderUsers);
+
+    /* ---------------- Messages ---------------- */
+    let activeMsgId = null;
+    function renderMessages() {
+        const el = document.getElementById("messageList"); el.innerHTML = "";
+        const sorted = [...data.messages].sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (!sorted.length) { el.innerHTML = emptyState("fa-envelope-open", "No messages", "Contact form submissions will appear here."); return; }
+        sorted.forEach(m => {
+            const row = document.createElement("div");
+            row.className = "msg-row" + (m.read ? "" : " is-unread");
+            row.innerHTML = `
+                <div class="msg-avatar">${esc(initials(m.name))}</div>
+                <div class="msg-body">
+                    <div class="msg-top"><strong>${esc(m.name)}</strong><time>${fmtDate(m.date)}</time></div>
+                    <div class="msg-subject">${esc(m.subject)}</div>
+                    <div class="msg-snippet">${esc(m.message)}</div>
+                </div>
+                <span class="pill ${m.read ? "read" : "unread"}">${m.read ? "Read" : "New"}</span>`;
+            row.addEventListener("click", () => openMsgModal(m.id));
+            el.appendChild(row);
+        });
+    }
+    const msgBackdrop = document.getElementById("msgModalBackdrop");
+    function openMsgModal(id) {
+        const m = data.messages.find(x => x.id === id);
+        if (!m) return;
+        activeMsgId = id;
+        m.read = true; persist();
+        document.getElementById("msgModalSubject").textContent = m.subject;
+        document.getElementById("msgModalMeta").textContent = `${m.name} · ${m.email} · ${fmtDate(m.date)}`;
+        document.getElementById("msgModalBody").textContent = m.message;
+        document.getElementById("msgModalReply").href = "mailto:" + m.email + "?subject=Re: " + encodeURIComponent(m.subject);
+        msgBackdrop.classList.add("open");
+        renderMessages(); renderOverview();
+    }
+    function closeMsgModal() { msgBackdrop.classList.remove("open"); }
+    document.getElementById("msgModalDelete").addEventListener("click", () => {
+        confirmAction("Delete this message permanently?", () => {
+            data.messages = data.messages.filter(m => m.id !== activeMsgId);
+            persist(); closeMsgModal(); renderAll(); toast("Message deleted.");
+        });
+    });
+    window.closeMsgModal = closeMsgModal;
+
+    /* ---------------- Donations ---------------- */
+    function renderDonations() {
+        const el = document.getElementById("table-donations"); el.innerHTML = "";
+        const q = (document.getElementById("donationSearch").value || "").toLowerCase();
+        const rows = data.donations.filter(d => d.donor.toLowerCase().includes(q));
+        if (!rows.length) { el.innerHTML = `<tr><td colspan="6">${emptyState("fa-sack-dollar", "No donations found", "Try a different search term.")}</td></tr>`; return; }
+        rows.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(d => {
+            el.innerHTML += `<tr>
+                <td class="cell-name"><strong>${esc(d.donor)}</strong></td>
+                <td>$${Number(d.amount).toLocaleString()}</td>
+                <td>${esc(d.method)}</td>
+                <td>${fmtDate(d.date)}</td>
+                <td><span class="pill ${d.status === "verified" ? "verified" : "pending"}">${esc(d.status)}</span></td>
+                <td><div class="row-actions">
+                    ${d.status !== "verified" ? `<button class="act-btn approve" title="Mark verified" onclick="verifyDonation(${d.id})"><i class="fa-solid fa-check"></i></button>` : ""}
+                    <button class="act-btn del" title="Delete" onclick="deleteListItem('donations',${d.id})"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+        document.getElementById("donTotalAll").textContent = "$" + data.donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        const thisMonth = new Date().getMonth();
+        document.getElementById("donTotalMonth").textContent = "$" + data.donations.filter(d => new Date(d.date).getMonth() === thisMonth).reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        document.getElementById("donPendingCount").textContent = data.donations.filter(d => d.status === "pending").length;
+    }
+    window.verifyDonation = function (id) {
+        const d = data.donations.find(x => x.id === id);
+        if (d) { d.status = "verified"; persist(); renderAll(); toast("Donation marked as verified."); }
+    };
+    document.getElementById("donationSearch").addEventListener("input", renderDonations);
+
+    /* ---------------- Overview ---------------- */
+    let chartApps, chartDons;
+    function renderOverview() {
+        document.getElementById("mAppTotal").textContent = data.applicants.length;
+        document.getElementById("mAppPending").textContent = data.applicants.filter(a => a.status === "pending").length;
+        document.getElementById("mDonationTotal").textContent = "$" + data.donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        document.getElementById("mMsgUnread").textContent = data.messages.filter(m => !m.read).length;
+        document.getElementById("qaPendingCount").textContent = data.applicants.filter(a => a.status === "pending").length + " awaiting decision";
+        document.getElementById("qaUnreadCount").textContent = data.messages.filter(m => !m.read).length + " unread";
+
+        const navBadgeApp = document.getElementById("nav-badge-applicants");
+        const pendingCount = data.applicants.filter(a => a.status === "pending").length;
+        navBadgeApp.textContent = pendingCount; navBadgeApp.style.display = pendingCount ? "inline-flex" : "none";
+        const navBadgeMsg = document.getElementById("nav-badge-messages");
+        const unreadCount = data.messages.filter(m => !m.read).length;
+        navBadgeMsg.textContent = unreadCount; navBadgeMsg.style.display = unreadCount ? "inline-flex" : "none";
+        document.getElementById("notifDot").style.display = (pendingCount + unreadCount) ? "block" : "none";
+
+        // Activity feed: merge latest applicants, messages, donations
+        const feed = [
+            ...data.applicants.map(a => ({ date: a.date, icon: "fa-clipboard-user", color: "var(--navy)", text: `${a.name} applied to ${a.program}` })),
+            ...data.messages.map(m => ({ date: m.date, icon: "fa-envelope", color: "var(--crimson)", text: `${m.name} sent a message: "${m.subject}"` })),
+            ...data.donations.map(d => ({ date: d.date, icon: "fa-hand-holding-dollar", color: "var(--green)", text: `${d.donor} contributed $${Number(d.amount).toLocaleString()} via ${d.method}` }))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+        const feedEl = document.getElementById("activityFeed");
+        feedEl.innerHTML = feed.map(f => `
+            <div class="activity-item">
+                <div class="activity-dot" style="background:${f.color};"><i class="fa-solid ${f.icon}"></i></div>
+                <div class="activity-text"><p>${esc(f.text)}</p><time>${fmtDate(f.date)}</time></div>
+            </div>`).join("") || emptyState("fa-clock", "No recent activity", "New applicants, messages and donations will show up here.");
+
+        // Charts
+        const monthLabels = [];
+        const monthCounts = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(); d.setMonth(d.getMonth() - i);
+            const label = d.toLocaleString(undefined, { month: "short" });
+            monthLabels.push(label);
+            monthCounts.push(data.applicants.filter(a => {
+                const ad = new Date(a.date);
+                return ad.getMonth() === d.getMonth() && ad.getFullYear() === d.getFullYear();
+            }).length);
+        }
+        const ctxApps = document.getElementById("chartApplications").getContext("2d");
+        if (chartApps) chartApps.destroy();
+        chartApps = new Chart(ctxApps, {
+            type: "line",
+            data: { labels: monthLabels, datasets: [{ data: monthCounts, borderColor: "#1C2E5E", backgroundColor: "rgba(28,46,94,0.08)", fill: true, tension: 0.35, pointBackgroundColor: "#1C2E5E" }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: "#f1f5f9" } }, x: { grid: { display: false } } } }
+        });
+
+        const methodTotals = {};
+        data.donations.forEach(d => { methodTotals[d.method] = (methodTotals[d.method] || 0) + Number(d.amount); });
+        const ctxDons = document.getElementById("chartDonations").getContext("2d");
+        if (chartDons) chartDons.destroy();
+        chartDons = new Chart(ctxDons, {
+            type: "doughnut",
+            data: { labels: Object.keys(methodTotals), datasets: [{ data: Object.values(methodTotals), backgroundColor: ["#1C2E5E", "#A51C30", "#F5C300", "#16A34A"] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } } }
+        });
+    }
+
+    /* ---------------- Master render / init ---------------- */
+    function renderAll() {
+        fillFields("hero"); document.getElementById("hero-bg-name").textContent = data.hero.bgImage ? "Current: " + data.hero.bgImage : "Click to replace hero background image";
+        fillFields("mission");
+        fillFields("about");
+        fillFields("bank");
+        fillFields("contact");
+        fillFields("settings");
+        document.getElementById("set-maintenance").checked = !!data.settings.maintenance;
+        document.getElementById("set-registrations").checked = !!data.settings.registrations;
+
+        renderPriorities(); renderStats(); renderPartners();
+        renderPillars(); renderCounters();
+        renderPrograms(); renderGallery(); renderStories();
+        renderHubTiers(); renderProfiles();
+        renderQuicklinks(); renderMobileMoney();
+        renderApplicants(); renderUsers(); renderMessages(); renderDonations();
+        renderAdmins();
+        renderOverview();
+    }
+
+    function resetAllData() {
+        data = JSON.parse(JSON.stringify(defaults));
+        persist();
+        renderAll();
+        toast("All content reset to defaults.");
+    }
+    window.resetAllData = resetAllData;
+
+    // Global search bar in topbar: jump to applicants/messages containing the term
+    document.getElementById("globalSearch").addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        const term = e.target.value.trim();
+        if (!term) return;
+        goToPage("applicants");
+        document.getElementById("applicantSearch").value = term;
+        renderApplicants();
+    });
+
+    // Close modals with Escape
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") { closeFormModal(); closeConfirmModal(); closeMsgModal(); }
+    });
+    [formModalBackdrop, confirmBackdrop, msgBackdrop].forEach(bd => {
+        bd.addEventListener("click", e => { if (e.target === bd) bd.classList.remove("open"); });
+    });
+
+    (async function initAdmin() {
+        await loadAdminFromAPI();
+        renderAll();
+    })();
+})();
+</script>
+</body>
+</html>

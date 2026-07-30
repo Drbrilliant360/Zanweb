@@ -1,0 +1,279 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <title>Support Our Cause — Zanchangemakers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <style>
+        /* --- Core Layout Token Properties --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --green: #16A34A;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --white: #ffffff;
+            --border: rgba(28, 46, 94, 0.09);
+            --form-bg: #E1EDF7;
+            --text-purple: #6A1B51;
+            --r: 12px;
+            --sh: 0 4px 24px rgba(28, 46, 94, 0.10);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg2); color: var(--ink); line-height: 1.6; }
+
+        /* Main Section Container Layout */
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .sec-head { text-align: center; margin-bottom: 50px; }
+        .eyebrow { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .28em; color: var(--crimson); margin-bottom: 10px; }
+        .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; text-transform: uppercase; color: var(--navy-deep); line-height: 1; }
+        .lead { color: var(--ink2); font-size: 1rem; max-width: 600px; margin: 15px auto 0; }
+
+        .donate-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 50px; align-items: start; }
+        @media(max-width: 900px) { .donate-grid { grid-template-columns: 1fr; gap: 35px; } }
+
+        /* Left Stack Column: Offline Wire Information */
+        .methods-stack { display: flex; flex-direction: column; gap: 20px; }
+        .mcard { padding: 25px; border-radius: var(--r); border: 1px solid var(--border); background: var(--white); box-shadow: var(--sh); }
+        .mcard h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; color: var(--navy-deep); margin-bottom: 15px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; }
+        .mcard h4 i { color: var(--crimson); font-size: 1.1rem; }
+        .mrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.88rem; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .mrow:last-child { border-bottom: none; }
+        .mrow span:first-child { color: var(--ink2); font-weight: 500; flex-shrink: 0; }
+        .mrow .mval { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink); text-align: right; }
+        .copy-btn {
+            border: none;
+            background: var(--bg2);
+            color: var(--navy);
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .copy-btn:hover { background: var(--navy); color: var(--white); }
+        .copy-btn.copied { background: var(--green); color: var(--white); }
+
+        /* Right Stack Column: Payment Push Form Block System */
+        .form-card { background: var(--white); padding: 35px; border-radius: var(--r); border: 1px solid var(--border); box-shadow: var(--sh); }
+        .form-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.9rem; font-weight: 800; text-transform: uppercase; color: var(--navy); margin-bottom: 20px; text-align: center; letter-spacing: 0.3px; }
+
+        /* Quick amount chips */
+        .amount-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .amount-chip {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            padding: 10px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg2);
+            color: var(--navy);
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .amount-chip:hover { border-color: var(--navy); }
+        .amount-chip.selected { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+        .form-block { text-align: left; background-color: var(--form-bg); margin-bottom: 4px; padding: 12px 20px; border-radius: 6px; }
+        .form-block label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-purple); margin-bottom: 4px; letter-spacing: 0.5px; }
+        .form-block label span { color: var(--crimson); margin-left: 2px; }
+
+        .field-txt { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.95rem; color: #333; padding: 2px 0; outline: none; }
+        .field-txt::placeholder { color: #8DA9C4;}
+        textarea.field-txt { height: 100px; resize: none; }
+
+        .btn-submit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: var(--navy-deep); color: var(--white); border: none; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; letter-spacing: 0.5px; margin-top: 15px; transition: background 0.2s; }
+        .btn-submit:hover { background: var(--crimson); }
+
+        #successCard { display: none; text-align: center; padding: 30px 10px 10px; }
+        .success-icon { width: 64px; height: 64px; background: var(--green); color: var(--white); font-size: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 16px; box-shadow: 0 8px 20px rgba(22, 163, 74, 0.3); }
+        #successCard h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.9rem; font-weight: 800; text-transform: uppercase; color: var(--navy); margin-bottom: 8px; }
+        #successCard p { color: var(--ink2); font-size: 0.92rem; margin-bottom: 25px; }
+        .success-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; background: var(--navy); color: var(--white); font-weight: 700; text-decoration: none; border-radius: 50px; font-size: 0.85rem; letter-spacing: 0.4px; transition: all 0.25s ease; }
+        .success-btn:hover { background: var(--crimson); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <div class="sec-head">
+            <p class="eyebrow">Support Us</p>
+            <h2 class="section-h">Empower Local Change</h2>
+            <p class="lead">Your financial contributions fund critical cohort toolkits, instructional workspaces, and direct local volunteer logistics.</p>
+        </div>
+
+        <div class="donate-grid">
+
+            <div class="methods-stack">
+
+                <div class="mcard">
+                    <h4><i class="fa-solid fa-building-columns"></i> Bank Wire Transfer</h4>
+                    <div class="mrow">
+                        <span>Bank Name</span>
+                        <span class="mval">THE PEOPLE'S BANK OF ZANZIBAR (PBZ)</span>
+                    </div>
+                    <div class="mrow">
+                        <span>Account Name</span>
+                        <span class="mval">ZANCHANGEMAKERS PATNERSHIP</span>
+                    </div>
+                    <div class="mrow">
+                        <span>Account Number</span>
+                        <span class="mval">0836881001<button type="button" class="copy-btn" data-copy="040001234567" aria-label="Copy account number"><i class="fa-regular fa-copy"></i></button></span>
+                    </div>
+                    <div class="mrow">
+                        <span>Swift Code</span>
+                        <span class="mval">PBZATZTZ<button type="button" class="copy-btn" data-copy="PBZATZTZXXX" aria-label="Copy SWIFT code"><i class="fa-regular fa-copy"></i></button></span>
+                    </div>
+                    <div class="mrow">
+                        <span>Branch Name</span>
+                        <span class="mval">MALINDI</span>
+                    </div>
+                     <div class="mrow">
+                        <span> Branch Code</span>
+                        <span class="mval">205</span>
+                    </div>
+                    
+                </div>
+
+                <div class="mcard">
+                    <h4><i class="fa-solid fa-mobile-screen-button"></i> Mobile Money Channels</h4>
+                    <div class="mrow">
+                        <span>Mix by Yas</span>
+                        <span class="mval"> 44348982 <button type="button" class="copy-btn" data-copy="44348982" aria-label="Copy Mix by Yas number"><i class="fa-regular fa-copy"></i></button></span>
+                    </div>
+                    <div class="mrow">
+                        <span>Name</span>
+                        <span class="mval">ZANCHANGEMAKERS</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-card">
+                <form id="paymentForm">
+                    <h3>Payment Dispatch</h3>
+
+                    <div class="form-block">
+                        <label for="donorName">Your Name<span>*</span></label>
+                        <input type="text" id="donorName" class="field-txt" placeholder="Type here" required />
+                    </div>
+
+                    <div class="form-block">
+                        <label for="donorEmail">Email<span>*</span></label>
+                        <input type="email" id="donorEmail" class="field-txt" placeholder="Type here" required />
+                    </div>
+
+                    <div class="form-block">
+                        <label for="donorPhone">Phone Number<span>*</span></label>
+                        <input type="tel" id="donorPhone" class="field-txt" placeholder="e.g. +255..." required />
+                    </div>
+
+                    <div class="form-block" style="padding-bottom: 5px;">
+                        <label for="donorAmount">Contribution Amount (TZS)<span>*</span></label>
+                        <div class="amount-chips" id="amountChips">
+                            <div class="amount-chip" data-amount="20000">20,000</div>
+                            <div class="amount-chip" data-amount="50000">50,000</div>
+                            <div class="amount-chip" data-amount="100000">100,000</div>
+                            <div class="amount-chip" data-amount="250000">250,000</div>
+                        </div>
+                        <input type="text" id="donorAmount" class="field-txt" placeholder="Or type a custom amount" required />
+                    </div>
+
+                    <div class="form-block" style="padding-bottom: 5px;">
+                        <label for="donorMessage">Message / Transfer Remarks</label>
+                        <textarea id="donorMessage" class="field-txt" placeholder="Type here"></textarea>
+                    </div>
+
+                    <button type="submit" id="donateBtn" class="btn-submit">Send Payment Push <i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+
+                <div id="successCard">
+                    <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                    <h3>Push Sent Successfully!</h3>
+                    <p>A payment confirmation request alert has been triggered on your registered phone network device.</p>
+                    <a href="/" class="success-btn">Return Home <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+    <script>
+        document.getElementById('paymentForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('donateBtn');
+            btn.disabled = true; btn.textContent = 'Processing...';
+            try {
+                const res = await fetch('/api/donations/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        donor_name: document.getElementById('donorName').value.trim(),
+                        donor_email: document.getElementById('donorEmail').value.trim(),
+                        amount: parseFloat(document.getElementById('donorAmount').value) || 0,
+                        message: document.getElementById('donorMessage').value.trim(),
+                        method: 'mobile_money',
+                    }),
+                });
+                if (res.ok) {
+                    document.getElementById('paymentForm').style.display = 'none';
+                    document.getElementById('successCard').style.display = 'block';
+                } else {
+                    const data = await res.json();
+                    alert(Object.values(data).flat().join('. ') || 'Payment failed.');
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+            }
+            btn.disabled = false; btn.innerHTML = 'Send Payment Push <i class="fa-solid fa-paper-plane"></i>';
+        });
+
+        // Quick amount selection
+        document.getElementById('amountChips').addEventListener('click', function (e) {
+            const chip = e.target.closest('.amount-chip');
+            if (!chip) return;
+            document.querySelectorAll('.amount-chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            document.getElementById('donorAmount').value = chip.getAttribute('data-amount');
+        });
+
+        // Copy-to-clipboard for bank / mobile money details
+        document.querySelectorAll('.copy-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const text = btn.getAttribute('data-copy');
+                navigator.clipboard.writeText(text).then(function () {
+                    const icon = btn.querySelector('i');
+                    btn.classList.add('copied');
+                    icon.className = 'fa-solid fa-check';
+                    setTimeout(function () {
+                        btn.classList.remove('copied');
+                        icon.className = 'fa-regular fa-copy';
+                    }, 1500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

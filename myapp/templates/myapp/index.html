@@ -1,0 +1,871 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>Zanchangemakers</title>   
+    <style>
+        /* --- Root Variable Layout Config & Reset --- */
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --ink3: #8A9ABE;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --bg3: #EBF0FA;
+            --border2: rgba(28, 46, 94, 0.16);
+            --sh: 0 4px 24px rgba(28, 46, 94, 0.10);
+            --sh-lg: 0 12px 48px rgba(28, 46, 94, 0.14);
+            --r: 12px;
+            --white: #ffffff;
+            --font-main: 'Inter', sans-serif;
+            --container-width: 1200px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--ink);
+            line-height: 1.6;
+            background-color: var(--white);
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        ul {
+            list-style: none;
+        }
+/* Branded Navigation Bar */
+       .hero-sub {
+            color: rgba(255, 255, 255, .95);
+            font-size: 1.05rem;
+            line-height: 1.72;
+            max-width: 580px;
+            margin: 0 auto 2rem;
+            text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(30px);
+            animation: subRightToLeft 1s cubic-bezier(0.215, 0.610, 0.355, 1) forwards;
+            animation-delay: 0.6s;
+        }
+        @keyframes subRightToLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* --- Global Structural Canvas Classes --- */
+        .container {
+            width: 100%;
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .eyebrow {
+            color: var(--crimson);
+            font-size: 0.75rem;
+              
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            color: var(--navy);
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, var(--crimson) 60%, var(--gold) 40%);
+        }
+
+        .center-title {
+            text-align: center;
+        }
+
+        .center-title::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+              
+        }
+
+        .btn-blue {
+            background-color: var(--navy);
+            color: var(--white);
+        }
+
+        .btn-blue:hover {
+            background-color: var(--navy-deep);
+            box-shadow: 0 4px 15px rgba(28, 46, 94, 0.3);
+        }
+
+        /* --- Custom Navigation Header (image_5355e5.png Match) --- */
+        header {
+            background-color: #F4F7FA; /* Light tint backdrop */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .nav-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 96px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-box img {
+            height: 64px;
+            width: auto;
+        }
+
+        .logo-box span {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #17326C; /* Deep navy color profile matching image_5355e5.png */
+            letter-spacing: -0.5px;
+        }
+
+        
+        /* Portal Login Rectangular Button Shape Styles */
+        .btn-portal {
+            background-color: rgba(28, 46, 94, 0.3) ;
+            color: var(--white) !important;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-portal:hover {
+            background-color: var(--crimson);
+        }
+
+        /* --- Hero Jumbotron Display --- */
+        .hero {
+            position: relative;
+            background: url("{% static 'myapp/DSC_3165_BinSeif.jpg.jpeg' %}");
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
+            height: 82vh;
+            min-height: 560px;
+            max-height: 780px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 96px;
+            overflow: hidden;
+        }
+        @media(max-width: 768px) { .hero { background-attachment: scroll; height: auto; min-height: 88vh; } }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(15,26,54,.62) 0%, rgba(28,46,94,.42) 55%, rgba(165,28,48,.22) 100%);
+            z-index: 0;
+        }
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero-content h1 {
+            font-size: clamp(2.3rem, 5vw, 4.2rem);
+            color: var(--white);
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 18px rgba(0,0,0,.45);
+            opacity: 0;
+            transform: translateY(24px);
+            animation: heroUp .9s cubic-bezier(.16,.84,.44,1) forwards;
+            animation-delay: .15s;
+        }
+        @keyframes heroUp { to { opacity: 1; transform: translateY(0); } }
+
+        .hero-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: heroUp .9s cubic-bezier(.16,.84,.44,1) forwards;
+            animation-delay: .9s;
+        }
+        .btn-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 30px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            transition: transform .25s cubic-bezier(.16,.84,.44,1), box-shadow .25s ease, background .25s ease;
+        }
+        .btn-hero-primary { background: var(--gold); color: var(--navy-deep); box-shadow: 0 10px 30px rgba(245,195,0,.3); }
+        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(245,195,0,.4); }
+        .btn-hero-outline { background: rgba(255,255,255,.08); color: var(--white); border: 1.5px solid rgba(255,255,255,.55); backdrop-filter: blur(4px); }
+        .btn-hero-outline:hover { background: rgba(255,255,255,.18); transform: translateY(-3px); border-color: #fff; }
+        .btn-hero .arrow { transition: transform .2s ease; }
+        .btn-hero:hover .arrow { transform: translateX(4px); }
+
+        .scroll-cue {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            color: rgba(255,255,255,.75);
+            font-size: 1.3rem;
+            animation: bounceCue 2.2s ease-in-out infinite;
+        }
+        @keyframes bounceCue { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(10px); } }
+
+        /* --- Our Story / About Us Section --- */
+        .about-us {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        @media(max-width: 992px) { .about-grid { grid-template-columns: 1fr; } }
+
+        .about-text p {
+            color: var(--ink2);
+            margin-bottom: 20px;
+            font-size: 0.98rem;
+            text-align: left;
+        }
+
+        .tech-image-container {
+            position: relative;
+            box-shadow: 0 15px 35px rgba(28, 46, 94, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* --- Core Problem / Specialization Segment --- */
+        .specialization {
+            background-color: #0F1A36;
+            color: var(--white);
+            padding: 80px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .specialization .section-title {
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .specialization p {
+            color: rgba(255,255,255,0.85);
+            max-width: 850px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            font-weight: 400;
+            text-align: left;
+        }
+
+        /* --- Priorities / Why Choose Us Grid --- */
+        .why-choose-us {
+            padding: 100px 0;
+            background-color: var(--bg2);
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        @media(max-width: 992px) { .why-grid { grid-template-columns: 1fr; } }
+
+        .card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 6px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            border: 1px solid rgba(10,14,26,0.05);
+        }
+
+        .card-num {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 2px solid var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--navy);
+            font-weight: bold;
+        }
+
+        .card-content h3 {
+            color: var(--crimson);
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .card-content p {
+            color: var(--ink2);
+            font-size: 0.92rem;
+            text-align: left;
+        }
+
+        /* --- Strategic Mission & Vision Modules --- */
+        .mission-vision {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .mv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        @media(max-width: 992px) { .mv-grid { grid-template-columns: 1fr; } }
+
+        .mv-image-container {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mv-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .mv-item {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .mv-badge {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background-color: var(--navy);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.2rem;
+        }
+
+        .mv-content h3 {
+            color: #0F1A36;
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .mv-content p {
+            color: var(--ink2);
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        /* --- Official Recognitions Grid Banner --- */
+        .stats {
+            background-color: var(--bg2);
+            padding: 80px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+
+        @media(max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
+
+        .stat-item h2 {
+            font-size: 1.4rem;
+            color: #0F1A36;
+            font-weight: 700;
+            margin-bottom: 8px;
+              
+        }
+
+        .stat-item p {
+            color: var(--ink2);
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        /* --- Target Sustainable Development Goals (SDGs) --- */
+        .clients {
+            padding: 80px 0;
+            background-color: var(--white);
+            text-align: center;
+        }
+
+        .client-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .sdg-tag {
+            background-color: var(--bg2);
+            border: 1px solid rgba(10,14,26,0.07);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--navy);
+              
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Contact Routing Bars --- */
+        
+        
+     
+     
+        /* --- Branded Main Footer System --- */
+        
+
+        .newsletter-form {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .newsletter-form input {
+            width: 100%;
+            padding: 14px 50px 14px 16px;
+            background-color: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: var(--white);
+            font-family: inherit;
+            outline: none;
+        }
+
+        .newsletter-form button {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            width: 40px;
+            height: 40px;
+            background-color: var(--navy);
+            border: none;
+            border-radius: 4px;
+            color: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .newsletter-form button:hover {
+            background-color: var(--crimson);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        .partner-crests {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .partner-crests img {
+            height: 40px;
+            opacity: 0.6;
+        }
+
+
+
+
+        
+        /* --- Partners & Stakeholders Section --- */
+        .partners-section { padding: 100px 0; background-color: var(--bg2); }
+        .partners-head { text-align: center; margin-bottom: 50px; }
+        .partners-head .lead { color: var(--ink2); font-size: 1rem; max-width: 600px; margin: 15px auto 0; }
+
+        .flagship-partners { background: var(--white); padding: 50px; border-radius: 20px; text-align: center; box-shadow: var(--sh-lg); border: 1px solid var(--border2); }
+        .flagship-label { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: .2em; color: var(--navy); margin-bottom: 35px; }
+        .flagship-logos { display: flex; justify-content: center; align-items: center; gap: 70px; flex-wrap: wrap; }
+        .flagship-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .flagship-box img { height: 90px; width: auto; filter: grayscale(1) opacity(.65); transition: filter .35s ease, transform .35s cubic-bezier(.16,.84,.44,1); }
+        .flagship-box:hover img { filter: grayscale(0) opacity(1); transform: scale(1.08) translateY(-4px); }
+        .flagship-box span { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; color: var(--ink2); }
+
+        /* ===== Modern Visual System: motion & polish ===== */
+        html { scroll-behavior: smooth; }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s cubic-bezier(.16,.84,.44,1), transform .7s cubic-bezier(.16,.84,.44,1); }
+            .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .reveal { opacity: 1; transform: none; }
+            .hero-content h1, .hero-cta-row, .hero-sub { animation: none !important; opacity: 1 !important; transform: none !important; }
+            .scroll-cue { animation: none !important; }
+        }
+
+        .section-title::after { width: 0; transition: width .6s cubic-bezier(.16,.84,.44,1) .1s; }
+        .reveal.is-visible .section-title::after { width: 50px; }
+
+        .tech-image-container, .mv-image-container {grid-column: 2; grid-row: 1 / span 3; align-self: center; /* Centers the image vertically between Priority 01 and 03 */position: relative; }
+        .tech-image-container img, .mv-image-container img { transition: transform .6s cubic-bezier(.16,.84,.44,1); }
+        .tech-image-container:hover img, .mv-image-container:hover img { transform: scale(1.05); }
+
+        .info-card { transition: transform .3s cubic-bezier(.16,.84,.44,1), box-shadow .3s ease, border-color .2s ease; }
+        .info-card:hover { transform: translateY(-6px); box-shadow: var(--sh-lg); border-color: var(--navy); }
+        .info-card .card-num { transition: background .25s ease, color .25s ease, transform .25s ease; }
+        .info-card:hover .card-num { background: var(--navy); color: #fff; transform: scale(1.08); }
+
+        .mv-item { transition: transform .25s ease; }
+        .mv-item:hover { transform: translateX(6px); }
+        .mv-badge { transition: transform .3s cubic-bezier(.34,1.56,.64,1), background .25s ease; }
+        .mv-item:hover .mv-badge { transform: rotate(-8deg) scale(1.1); background: var(--crimson); }
+
+        .stat-item { padding: 20px; border-radius: var(--r); transition: transform .3s cubic-bezier(.16,.84,.44,1); }
+        .stat-item:hover { transform: translateY(-6px); }
+        .stat-item h2 { background: linear-gradient(100deg, var(--crimson), var(--navy) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+        .btn-blue { transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+        .btn-blue:hover { transform: translateY(-3px); }
+        .btn .arrow { display: inline-block; transition: transform .2s ease; }
+        .btn:hover .arrow { transform: translateX(4px); }
+
+        .logo-box img { transition: transform .3s ease; }
+        .logo-box:hover img { transform: rotate(-6deg) scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header and Linked Layout Navigation Bar System (image_5355e5.png Structural Match) -->
+    
+
+    <!-- Hero Jumbotron Display -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Empowering Youth, <br>Inspiring Change, <br>Building Communities.</h1>
+                <p class="hero-sub">A movement dedicated to unlocking potential, fostering leadership, and creating lasting impact across Tanzania's communities.</p>
+                <div class="hero-cta-row">
+                    <a href="{% url 'programs' %}" class="btn-hero btn-hero-primary">Explore Our Programs <span class="arrow">&rarr;</span></a>
+                    <a href="{% url 'volunteer' %}" class="btn-hero btn-hero-outline">Get Involved <span class="arrow">&rarr;</span></a>
+                </div>
+            </div>
+        </div>
+        <a href="#about" class="scroll-cue" aria-label="Scroll to learn more"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></a>
+    </section>
+
+    <!-- Detailed Profile Story Area -->
+    <section class="about-us" id="about">
+        <div class="container">
+            <div class="about-grid reveal">
+                <div class="about-text">
+                    <span class="eyebrow">Our Origins</span>
+                    <h2 class="section-title">Our Story</h2>
+                    <p>Zanchangemakers was founded in 2021 by Nassor Mohammed and Abdulhamid Mzee, two passionate youth leaders driven by the vision of a more active, empowered, and community-oriented generation. Rooted in the belief that volunteerism is a powerful force for change, the initiative was created to connect youth with meaningful opportunities to lead and serve.</p>
+                    <p>Under the capable leadership of Ahlam Ahmed, a dynamic young woman and the current Project Lead, Zanchangemakers proudly champions women in leadership, demonstrating its commitment to inclusivity, gender equity, and the empowerment of young women as catalysts for social transformation.</p>
+                    <a href="{% url 'about' %}" class="btn btn-blue">Read More <span class="arrow">&rarr;</span></a>
+                </div>
+                <div class="tech-image-container">
+                    <img src="{% static 'myapp/DSC_3202_BinSeif.jpg' %}" alt="Youth Leadership Vetting Cohort Layout">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Core Problem Context Area -->
+    <section class="specialization">
+        <div class="container reveal">
+            <span class="eyebrow2">The Challenge We Address</span>
+            <h2 class="section-title center-title">The Problem</h2>
+            <p>In Zanzibar and across many parts of Tanzania, youth face limited access to leadership development, practical job skills, and platforms to contribute meaningfully to their communities. Despite high potential, many young people remain under-engaged in civic life, with unemployment, lack of mentorship, and insufficient opportunities for personal growth hindering their ability to thrive. At the same time, communities suffer from a shortage of active citizen involvement in addressing local challenges.</p>
+        </div>
+    </section>
+
+    <!-- Priorities & Core Pillars Stack Module -->
+    <section class="why-choose-us">
+        <div class="container">
+            <div class="why-grid reveal">
+                <div class="card-stack">
+                    <span class="eyebrow">Action Frameworks</span>
+                    <h2 class="section-title">Our Strategic Priorities</h2>
+                    
+                    <div class="info-card">
+                        <div class="card-num">01</div>
+                        <div class="card-content">
+                            <h3>Promote a Culture of Volunteerism</h3>
+                            <p>Encouraging individuals to dedicate their unique skills, labor, and time to localized structural community transformation initiatives.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="card-num">02</div>
+                        <div class="card-content">
+                            <h3>Equip Youth with Employability & Leadership</h3>
+                            <p>Delivering intentional training cohorts that anchor modern corporate skillsets and dynamic problem-solving competencies.</p>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="card-num">03</div>
+                        <div class="card-content">
+                            <h3>Strengthen Resilience & Civic Participation</h3>
+                            <p>Building active channels for youth to interact seamlessly with local governance structures and community needs
+                                .</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="tech-image-container">
+                    <img src="{% static 'myapp/DSC_2795_BinSeif.jpg' %}" alt="Zanchangemakers Active Operations Visual Asset">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Verified Mission & Vision Panel -->
+    <section class="mission-vision">
+        <div class="container">
+            <div class="mv-grid reveal">
+                <div class="mv-image-container">
+                    <img src="{% static 'myapp/WAX_5518_BinSeif_Original.jpg.jpeg' %}" alt="Collaborative Learning Space Image">
+                </div>
+                <div class="mv-stack">
+                    <span class="eyebrow">Our Standard Metrics</span>
+                    <h2 class="section-title">Mission, Vision & Purpose</h2>
+                    
+                    <div class="mv-item">
+                        <div class="mv-badge">M</div>
+                        <div class="mv-content">
+                            <h3>Our Mission</h3>
+                            <p>Our mission is to empower individuals to offer their skills and time, building stronger, more active communities while providing youth with essential employability skills and leadership experiences.</p>
+                        </div>
+                    </div>
+
+                    <div class="mv-item">
+                        <div class="mv-badge">V</div>
+                        <div class="mv-content">
+                            <h3>Our Vision</h3>
+                            <p>The vision is to create a leadership-driven volunteer movement, where each volunteer not only serves but leads, generating lasting impact and progress.</p>
+                        </div>
+                    </div>
+
+                    <div class="mv-item">
+                        <div class="mv-badge">P</div>
+                        <div class="mv-content">
+                            <h3>Our Core Purpose</h3>
+                            <p>To empower individuals to use their time and skills for community development, while equipping youth with critical leadership experiences that prepare them to be changemakers in society.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Verified Strategic Recognitions Banner Grid -->
+    <section class="stats">
+        <div class="container">
+            <span class="eyebrow center-title">Proven Footprint</span>
+            <h2 class="section-title center-title" style="margin-bottom: 50px;">Official Recognitions</h2>
+            <div class="stats-grid reveal">
+                <div class="stat-item">
+                    <h2>2021</h2>
+                    <p>Winner: Ideathon for Zanzibar Youth</p>
+                </div>
+                <div class="stat-item">
+                    <h2>2022</h2>
+                    <p>1st Winner: Outstanding Youth in Education (Zanzibar Youth Awards)</p>
+                </div>
+                <div class="stat-item">
+                    <h2>2024</h2>
+                    <p>Winner: USAID TUSHIRIKI PAMOJA Kick Start Grant</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Main Section Structure Frame Content -->
+    <section class="partners-section">
+        <div class="container">
+            <div class="partners-head">
+                <span class="eyebrow center-title">Our Alliance</span>
+                <h2 class="section-title center-title">Partners &amp; Stakeholders</h2>
+                <p class="lead">We collaborate with government bodies, institutional networks, and corporate ecosystems to build sustainable impact structures.</p>
+            </div>
+
+            <!-- Primary Government & Strategic Partners Card -->
+            <div class="flagship-partners reveal">
+                <div class="flagship-label">Strategic Institutional Alliances</div>
+                <div class="flagship-logos">
+
+                    <!-- Partner 1 -->
+                    <div class="flagship-box">
+                        <img src="{% static 'myapp/big smz logo-2.png' %}" alt="SMZ Government Logo verbatim">
+                    </div>
+
+                    <!-- Partner 2 -->
+                    <div class="flagship-box">
+                        <img src="{% static 'myapp/YVF LOGO.png' %}" alt="YVF Forum Logo verbatim">
+                    </div>
+
+                    <!-- Partner 3 -->
+                    <div class="flagship-box">
+                        <img src="{% static 'myapp/IDEATHON TANZANIA LOGO.png' %}" alt="IDEATHON for Tanzanian Youth Logo verbatim">
+                    </div>
+
+                    <!-- Partner 4 -->
+                    <div class="flagship-box">
+                        <img src="{% static 'myapp/iri_page-0001.png' %}" alt="International Republican Institution Logo verbatim">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main Footer Container -->
+    
+
+    <script id="django-urls-data" type="application/json">{"home": "/", "about": "/about/", "programs": "/programs/", "volunteer": "/volunteer/", "gallery": "/gallery/", "stories": "/stories/", "contact": "/contact/", "register": "/register/", "login": "/login/", "donate": "/donate/"}</script>
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+    <script>
+        (async function () {
+            try {
+                const res = await fetch('/api/org-stats/');
+                if (res.ok) {
+                    const data = await res.json();
+                    const stats = data.results || data;
+                    const grid = document.querySelector('.stats-grid');
+                    if (grid && stats.length) {
+                        grid.innerHTML = stats.map(function (s) {
+                            var iconMap = {users:'fa-users',hands:'fa-hands', 'map-pin':'fa-map-pin', 'book-open':'fa-book-open'};
+                            var icon = iconMap[s.icon] || 'fa-star';
+                            return '<div class="stat-item"><h2>' + s.value + '</h2><p>' + s.label + '</p></div>';
+                        }).join('');
+                    }
+                }
+            } catch (e) {}
+        })();
+        (function () {
+            var revealEls = document.querySelectorAll('.reveal');
+            if (!revealEls.length) return;
+            if ('IntersectionObserver' in window) {
+                var rio = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            rio.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+                revealEls.forEach(function (el, i) {
+                    el.style.transitionDelay = (Math.min(i % 4, 3) * 80) + 'ms';
+                    rio.observe(el);
+                });
+            } else {
+                revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+            }
+        })();
+    </script>
+</body>
+</html>

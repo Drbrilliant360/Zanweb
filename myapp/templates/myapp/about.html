@@ -1,0 +1,343 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <title>About Us</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --green: #2D7A3A;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --white: #ffffff;
+            --border: rgba(28, 46, 94, 0.09);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        /* Main Section Content Container Layout */
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 80px; }
+        @media(max-width: 900px) {
+            .about-grid { grid-template-columns: 1fr; gap: 40px; }
+        }
+
+        /* Typography & Copy Classes */
+        .eyebrow { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .28em; color: var(--crimson); margin-bottom: 12px; }
+        .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; text-transform: uppercase; color: var(--navy-deep); line-height: 1.05; margin-bottom: 22px; }
+        .about-text p { color: var(--ink2); font-size: 1rem; margin-bottom: 18px; }
+
+        /* Graphic/Image Layout Box Elements */
+        .about-image-frame { position: relative; border-radius: 14px; overflow: hidden; box-shadow: 0 14px 34px rgba(28, 46, 94, 0.14); }
+        .about-image-frame img { width: 100%; display: block; object-fit: cover; aspect-ratio: 4/3; }
+        .about-image-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        .about-badge {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            background: var(--white);
+            border-radius: 10px;
+            padding: 12px 18px;
+            box-shadow: 0 8px 20px rgba(15, 26, 54, 0.18);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .about-badge i { color: var(--crimson); font-size: 1.1rem; }
+        .about-badge span { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--navy-deep); text-transform: uppercase; letter-spacing: 0.3px; }
+
+        /* Section heading wrapper (shared by Values + Impact) */
+        .center-head { text-align: center; margin-bottom: 44px; }
+        .center-head .section-h { font-size: 2.4rem; margin-bottom: 0; }
+
+        /* Core Organizational Values Cards Panel Section */
+        .values-section { background-color: var(--bg2); padding: 70px 20px; border-radius: 20px; margin-bottom: 80px; }
+        .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1000px; margin: 0 auto; }
+        @media(max-width: 768px) {
+            .values-grid { grid-template-columns: 1fr; }
+        }
+        .value-card {
+            background: var(--white);
+            padding: 32px 28px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .value-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(15, 26, 54, 0.10); }
+        .value-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--bg2);
+            color: var(--crimson);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+        .value-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 800; text-transform: uppercase; color: var(--navy-deep); margin-bottom: 10px; }
+        .value-card p { color: var(--ink2); font-size: 0.92rem; }
+
+        /* Impact Metric Counter Elements Block Setup */
+        .impact-counters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center; }
+        @media(max-width: 768px) {
+            .impact-counters { grid-template-columns: repeat(2, 1fr); }
+        }
+        .counter-card {
+            position: relative;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 32px 18px 26px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .counter-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--crimson), var(--gold));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.6s ease;
+        }
+        .counter-card.in-view::before { transform: scaleX(1); }
+        .counter-card:hover { transform: translateY(-6px); box-shadow: 0 18px 34px rgba(15, 26, 54, 0.12); }
+        .counter-icon {
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: var(--bg2);
+            color: var(--crimson);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            transition: transform 0.3s ease;
+        }
+        .counter-card:hover .counter-icon { transform: scale(1.12) rotate(-6deg); }
+        .counter-card h3 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2.9rem;
+            font-weight: 900;
+            color: var(--navy);
+            margin-bottom: 6px;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+        .counter-card p { font-size: 0.8rem; font-weight: 700; color: var(--ink2); letter-spacing: 0.6px; text-transform: uppercase; }
+
+        /* Closing call to action */
+        .cta-section {
+            margin-top: 80px;
+            background: linear-gradient(135deg, var(--navy-deep), var(--navy));
+            border-radius: 20px;
+            padding: 56px 40px;
+            text-align: center;
+            color: var(--white);
+        }
+        .cta-section .eyebrow { color: var(--gold); }
+        .cta-section h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 2.4rem; font-weight: 900; text-transform: uppercase; margin-bottom: 14px; }
+        .cta-section p { color: rgba(255,255,255,0.78); max-width: 520px; margin: 0 auto 28px; font-size: 0.98rem; }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--crimson);
+            color: var(--white);
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+        }
+        .cta-btn:hover { background: var(--gold); color: var(--navy-deep); transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <main class="container">
+        <!-- Main Story Block -->
+        <section class="about-grid">
+            <div class="about-text">
+                <p class="eyebrow">Who We Are</p>
+                <h2 class="section-h">Driving Generational Impact and Leadership Across Tanzania</h2>
+                <p>Zanchangemakers is a premier youth-focused initiative dedicated to cultivating civic responsibility, practical workforce skillsets, and community-driven action across Zanzibar and the wider United Republic of Tanzania.</p>
+                <p>We work at the intersection of local community needs and emerging youth potential, offering pathways that transform passionate individuals into highly capable social change leaders, innovators, and modern workforce professionals.</p>
+            </div>
+            <div class="about-image-frame">
+                <img src="{% static 'myapp/WAX_5518_BinSeif_Original.jpg.jpeg' %}" alt="About Us Action View">
+                <div class="about-badge">
+                    <i class="fas fa-seedling"></i>
+                    <span>Est. Youth-Led Impact</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values Section -->
+        <section class="values-section">
+            <div class="center-head">
+                <p class="eyebrow">What Guides Us</p>
+                <h2 class="section-h">Our Core Pillars</h2>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon"><i class="fas fa-hands-holding-circle"></i></div>
+                    <h3>Empowerment</h3>
+                    <p>We provide tools, training models, and dynamic spaces that empower youth to build scalable local solutions for regional issues.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon"><i class="fas fa-people-group"></i></div>
+                    <h3>Volunteerism</h3>
+                    <p>Fostering an ecosystem of community-first values, structural service, and impact-driven cross-functional teamwork models.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon"><i class="fas fa-scale-balanced"></i></div>
+                    <h3>Accountability</h3>
+                    <p>Nurturing professional governance, transparent community responsibility, and clear socio-civic leadership practices.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Impact Stat Metrics Grid Container -->
+        <section>
+            <div class="center-head">
+                <p class="eyebrow">Proven Results</p>
+                <h2 class="section-h">Our Footprint in Numbers</h2>
+            </div>
+            <div class="impact-counters">
+                <div class="counter-card">
+                    <div class="counter-icon"><i class="fas fa-user-graduate"></i></div>
+                    <h3 data-count-to="500" data-suffix="+">0</h3>
+                    <p>Youth Trained</p>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3 data-count-to="5" data-suffix="+">0</h3>
+                    <p>Completed Cohorts</p>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon"><i class="fas fa-clock"></i></div>
+                    <h3 data-count-to="10" data-suffix="k+">0</h3>
+                    <p>Service Hours Logged</p>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-icon"><i class="fas fa-handshake"></i></div>
+                    <h3 data-count-to="20" data-suffix="+">0</h3>
+                    <p>Partner Organizations</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Closing Call To Action -->
+        <section class="cta-section">
+            <p class="eyebrow">Ready To Get Involved</p>
+            <h2>Become Part Of The Movement</h2>
+            <p>Join a growing community of young changemakers building real solutions for Zanzibar and Tanzania.</p>
+            <a href="{% url 'register' %}" class="cta-btn">
+                Join as a Volunteer <i class="fas fa-arrow-right"></i>
+            </a>
+        </section>
+
+    </main>
+
+    <script>
+        // Fetch live org stats and update counters
+        (async function () {
+            try {
+                const res = await fetch('/api/org-stats/');
+                if (res.ok) {
+                    const stats = await res.json();
+                    const counters = document.querySelectorAll('.counter-card h3[data-count-to]');
+                    const defaults = [500, 5, 10, 20];
+                    stats.results && stats.results.forEach(function (s, i) {
+                        if (counters[i]) {
+                            const v = parseInt(s.value.replace(/[^0-9]/g, '')) || defaults[i] || 0;
+                            counters[i].setAttribute('data-count-to', v);
+                        }
+                    });
+                }
+            } catch (e) {}
+        })();
+        // Animate the impact counters upward when they scroll into view
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.counter-card');
+
+            function animateCount(el) {
+                const target = parseFloat(el.getAttribute('data-count-to'));
+                const suffix = el.getAttribute('data-suffix') || '';
+                const duration = 1400;
+                const start = performance.now();
+
+                function tick(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+                    const value = Math.round(target * eased);
+                    el.textContent = value + suffix;
+                    if (progress < 1) {
+                        requestAnimationFrame(tick);
+                    } else {
+                        el.textContent = target + suffix;
+                    }
+                }
+                requestAnimationFrame(tick);
+            }
+
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const card = entry.target;
+                            const heading = card.querySelector('h3[data-count-to]');
+                            card.classList.add('in-view');
+                            if (heading) animateCount(heading);
+                            observer.unobserve(card);
+                        }
+                    });
+                }, { threshold: 0.35 });
+
+                cards.forEach((card) => observer.observe(card));
+            } else {
+                // Fallback for browsers without IntersectionObserver support
+                cards.forEach((card) => {
+                    card.classList.add('in-view');
+                    const heading = card.querySelector('h3[data-count-to]');
+                    if (heading) animateCount(heading);
+                });
+            }
+        });
+    </script>
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>

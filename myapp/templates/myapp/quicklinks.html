@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>Quick Links — Zanchangemakers</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --navy: #1C2E5E; --navy-deep: #0F1A36; --crimson: #A51C30; --gold: #F5C300; --ink2: #4A5879; --bg: #F5F7FC; --white: #ffffff; --border: rgba(28,46,94,0.09); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #222; line-height: 1.7; }
+        .page { max-width: 700px; margin: 0 auto; padding: 100px 24px 80px; }
+        h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 2.5rem; color: var(--navy); margin-bottom: 24px; }
+        .link-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; transition: box-shadow 0.2s; }
+        .link-card:hover { box-shadow: 0 4px 16px rgba(28,46,94,0.10); }
+        .link-card i { font-size: 1.4rem; color: var(--crimson); width: 28px; text-align: center; }
+        .link-card a { font-weight: 600; color: var(--navy); text-decoration: none; font-size: 1rem; }
+        .link-card a:hover { color: var(--crimson); text-decoration: underline; }
+        .link-card span { font-size: 0.8rem; color: var(--ink2); display: block; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Quick Links</h1>
+        <div class="link-card"><i class="fas fa-briefcase"></i><div><a href="https://www.ajira.go.tz" target="_blank">Tanzania Ajira Portal</a><span>Explore job opportunities across Tanzania</span></div></div>
+        <div class="link-card"><i class="fas fa-users"></i><div><a href="https://www.utumishi.go.tz" target="_blank">Public Service Recruitment Secretariat</a><span>Government recruitment and career updates</span></div></div>
+        <div class="link-card"><i class="fas fa-child"></i><div><a href="https://portal.vijana.go.tz" target="_blank">Vijana Portal</a><span>Youth empowerment programs and resources</span></div></div>
+        <div class="link-card"><i class="fab fa-linkedin"></i><div><a href="https://www.linkedin.com/jobs" target="_blank">LinkedIn Jobs</a><span>Professional networking and job listings</span></div></div>
+    </div>
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>

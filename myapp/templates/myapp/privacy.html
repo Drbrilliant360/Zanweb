@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="{% static 'myapp/head logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <title>Privacy Policy — Zanchangemakers</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --navy: #1C2E5E; --navy-deep: #0F1A36; --crimson: #A51C30; --gold: #F5C300; --ink2: #4A5879; --bg: #F5F7FC; --white: #ffffff; --border: rgba(28,46,94,0.09); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #222; line-height: 1.7; }
+        .page { max-width: 800px; margin: 0 auto; padding: 100px 24px 80px; }
+        h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 2.5rem; color: var(--navy); margin-bottom: 8px; }
+        .meta { color: var(--ink2); font-size: 0.85rem; margin-bottom: 32px; }
+        h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; color: var(--navy-deep); margin: 28px 0 10px; }
+        p { margin-bottom: 14px; color: #444; }
+        ul { margin: 10px 0 18px 20px; color: #444; }
+        ul li { margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Privacy Policy</h1>
+        <p class="meta">Last updated: July 2026</p>
+        <p>Zanchangemakers ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.</p>
+        
+        <h2>Information We Collect</h2>
+        <p>We may collect personal information that you voluntarily provide when registering, filling out a form, or contacting us, including your name, email address, phone number, and location.</p>
+        
+        <h2>How We Use Your Information</h2>
+        <p>We use the information we collect to process volunteer applications, communicate with you about programs and events, improve our website, and comply with legal obligations.</p>
+        
+        <h2>Data Protection</h2>
+        <p>We implement appropriate security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure.</p>
+        
+        <h2>Third-Party Disclosure</h2>
+        <p>We do not sell, trade, or transfer your personal information to third parties without your consent, except as required by law.</p>
+        
+        <h2>Contact Us</h2>
+        <p>If you have questions about this Privacy Policy, please contact us at info@zanchangemakers.co.tz or call +255 777 426 972.</p>
+    </div>
+    <script src="{% static 'myapp/js/shared.js' %}"></script>
+</body>
+</html>
