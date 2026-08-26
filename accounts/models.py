@@ -79,6 +79,7 @@ class VolunteerProfile(models.Model):
         ('intermediate', 'Intermediate'),
         ('fluent', 'Fluent'),
     ]
+    SWAHILI_LEVEL_CHOICES = ENGLISH_LEVEL_CHOICES
     INTEREST_CHOICES = [
         ('community_development', 'Community Development'),
         ('youth_mentorship', 'Youth Mentorship'),
@@ -100,11 +101,13 @@ class VolunteerProfile(models.Model):
     bio = models.TextField(max_length=1000, blank=True)
     skills = models.CharField(max_length=500, blank=True, help_text='Comma-separated skills')
     location = models.CharField(max_length=200, blank=True)
+    country = models.CharField(max_length=100, blank=True)
     region = models.CharField(max_length=30, choices=REGION_CHOICES, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True)
     age_group = models.CharField(max_length=10, choices=AGE_GROUP_CHOICES, blank=True)
     nationality = models.CharField(max_length=20, choices=NATIONALITY_CHOICES, blank=True)
     english_level = models.CharField(max_length=20, choices=ENGLISH_LEVEL_CHOICES, blank=True)
+    swahili_level = models.CharField(max_length=20, choices=SWAHILI_LEVEL_CHOICES, blank=True)
     interest_area = models.CharField(max_length=30, choices=INTEREST_CHOICES, blank=True)
     volunteered_before = models.BooleanField(null=True, blank=True)
     total_impact_hours = models.DecimalField(max_digits=8, decimal_places=1, default=0)
@@ -131,3 +134,42 @@ class VolunteerProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.email} — {self.rank}'
+
+
+class VolunteerExperience(models.Model):
+    volunteer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='experiences',
+    )
+    title = models.CharField(max_length=200)
+    organization = models.CharField(max_length=200, blank=True)
+    dates = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', '-created_at']
+
+    def __str__(self):
+        return f'{self.volunteer.email} — {self.title}'
+
+
+class VolunteerEducation(models.Model):
+    volunteer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='education_entries',
+    )
+    degree = models.CharField(max_length=200)
+    school = models.CharField(max_length=200, blank=True)
+    dates = models.CharField(max_length=100, blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', '-created_at']
+
+    def __str__(self):
+        return f'{self.volunteer.email} — {self.degree}'

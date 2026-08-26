@@ -68,7 +68,9 @@ class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
 
     def get_object(self):
-        return self.request.user
+        return User.objects.select_related('volunteer_profile').prefetch_related(
+            'experiences', 'education_entries',
+        ).get(pk=self.request.user.pk)
 
 
 class ChangePasswordView(APIView):
@@ -104,16 +106,3 @@ class VolunteerDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminRole]
     queryset = User.objects.filter(role='volunteer')
     serializer_class = UserSerializer
-
-
-class AdminDashboardView(APIView):
-    permission_classes = [permissions.IsAdminUser]
-
-    def get(self, request):
-        from programs.models import Program
-        total_volunteers = User.objects.filter(role='volunteer', is_active=True).count()
-        active_programs = Program.objects.filter(is_published=True, status__in=['active', 'in_progress']).count()
-        return Response({
-            'total_volunteers': total_volunteers,
-            'active_programs': active_programs,
-        })

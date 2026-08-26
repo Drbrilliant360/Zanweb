@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 
 
 def application_success(request):
@@ -47,7 +46,6 @@ def volunteer_view(request):
 def login_view(request):
     return render(request, 'myapp/login.html')
 
-@login_required
 def dash_view(request):
     return render(request, 'myapp/dash.html')
 

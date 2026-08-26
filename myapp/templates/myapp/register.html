@@ -289,6 +289,13 @@
     </main>
 
     <script>
+        function validateForm() {
+            const form = document.getElementById('registrationForm');
+            const btn = document.getElementById('submitBtn');
+            if (!form || !btn) return;
+            btn.disabled = !form.checkValidity();
+        }
+
         document.getElementById('registrationForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const errEl = document.getElementById('regError');
@@ -306,6 +313,7 @@
                 '16-18': '16_18', '19-25': '19_25', '26-35': '26_35', '36+': '36_plus',
             };
             const engMap = { 'Basic': 'basic', 'Intermediate': 'intermediate', 'Fluent': 'fluent' };
+            const swahiliMap = engMap;
 
             const payload = {
                 first_name: document.getElementById('firstName').value.trim(),
@@ -314,11 +322,13 @@
                 phone_number: document.getElementById('phone').value.trim(),
                 street_address: document.getElementById('street').value.trim(),
                 town: document.getElementById('town').value.trim(),
+                country: document.getElementById('country').value.trim(),
                 region: document.getElementById('region').value.trim(),
                 gender: document.getElementById('gender').value.toLowerCase() || '',
                 age_group: ageMap[document.getElementById('ageGroup').value] || '',
                 nationality: document.getElementById('nationality').value.trim(),
                 english_level: engMap[document.getElementById('englishLevel').value] || '',
+                swahili_level: swahiliMap[document.getElementById('swahiliLevel').value] || '',
                 interest_area: interestMap[document.getElementById('interest').value] || '',
                 volunteered_before: document.getElementById('volunteeredBefore').value === 'Yes',
                 password: document.getElementById('password').value,

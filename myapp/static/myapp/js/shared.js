@@ -54,16 +54,30 @@ async function apiFetch(path, options = {}) {
   return res;
 }
 
+async function readJsonResponse(res) {
+  if (res.status === 204) return { ok: res.ok, status: res.status, data: null };
+  const text = await res.text();
+  let data = null;
+  if (text) {
+    try { data = JSON.parse(text); } catch (e) { data = text; }
+  }
+  return { ok: res.ok, status: res.status, data };
+}
+
 async function apiGet(path) {
-  return apiFetch(path);
+  const res = await apiFetch(path);
+  const parsed = await readJsonResponse(res);
+  return parsed.ok ? parsed.data : null;
 }
 
 async function apiPost(path, body) {
-  return apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
+  const res = await apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
+  return readJsonResponse(res);
 }
 
 async function apiPatch(path, body) {
-  return apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) });
+  const res = await apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) });
+  return readJsonResponse(res);
 }
 
 async function apiDelete(path) {
@@ -351,8 +365,8 @@ async function apiPut(path, body) {
       return;
     }
     try {
-      const res = await apiPost('/newsletter/', { email });
-      if (res.ok) {
+      const result = await apiPost('/newsletter/', { email });
+      if (result.ok) {
         document.getElementById('zcmNewsMsg').style.display = 'block';
         document.getElementById('zcmNewsEmail').value = '';
       } else {

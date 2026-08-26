@@ -1,23 +1,49 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from django.conf import settings
-from .models import User, VolunteerProfile
+from .models import User, VolunteerProfile, VolunteerExperience, VolunteerEducation
+
+
+class VolunteerExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerExperience
+        fields = ['id', 'title', 'organization', 'dates', 'description']
+        read_only_fields = ['id']
+
+
+class VolunteerEducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerEducation
+        fields = ['id', 'degree', 'school', 'dates']
+        read_only_fields = ['id']
 
 
 class VolunteerProfileSerializer(serializers.ModelSerializer):
+    experiences = VolunteerExperienceSerializer(many=True, required=False)
+    education = VolunteerEducationSerializer(many=True, required=False)
+
     class Meta:
         model = VolunteerProfile
         fields = [
-            'id', 'bio', 'skills', 'location', 'region', 'gender', 'age_group',
-            'nationality', 'english_level', 'interest_area', 'volunteered_before',
+            'id', 'bio', 'skills', 'location', 'country', 'region', 'gender', 'age_group',
+            'nationality', 'english_level', 'swahili_level', 'interest_area', 'volunteered_before',
             'total_impact_hours', 'rank', 'next_rank_threshold_hours',
-            'is_active_volunteer', 'joined_at',
+            'is_active_volunteer', 'joined_at', 'experiences', 'education',
         ]
         read_only_fields = ['total_impact_hours', 'rank', 'next_rank_threshold_hours', 'joined_at']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['experiences'] = VolunteerExperienceSerializer(
+            instance.user.experiences.all(), many=True,
+        ).data
+        data['education'] = VolunteerEducationSerializer(
+            instance.user.education_entries.all(), many=True,
+        ).data
+        return data
+
 
 class UserSerializer(serializers.ModelSerializer):
-    volunteer_profile = VolunteerProfileSerializer(read_only=True)
+    volunteer_profile = VolunteerProfileSerializer(required=False)
 
     class Meta:
         model = User
@@ -25,14 +51,51 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'email', 'first_name', 'last_name', 'full_name',
             'phone_number', 'role', 'street_address', 'town', 'postal_code',
             'avatar', 'is_active', 'date_joined', 'created_at',
+            'accepted_terms', 'accepted_privacy_policy',
             'volunteer_profile',
         ]
-        read_only_fields = ['id', 'is_active', 'date_joined', 'created_at']
+        read_only_fields = [
+            'id', 'email', 'role', 'is_active', 'date_joined', 'created_at',
+            'accepted_terms', 'accepted_privacy_policy',
+        ]
 
     full_name = serializers.SerializerMethodField()
 
     def get_full_name(self, obj):
         return obj.get_full_name() or obj.email
+
+    def _sync_cv_entries(self, user, experiences=None, education=None):
+        if experiences is not None:
+            user.experiences.all().delete()
+            for i, item in enumerate(experiences):
+                VolunteerExperience.objects.create(
+                    volunteer=user,
+                    sort_order=i,
+                    **item,
+                )
+        if education is not None:
+            user.education_entries.all().delete()
+            for i, item in enumerate(education):
+                VolunteerEducation.objects.create(
+                    volunteer=user,
+                    sort_order=i,
+                    **item,
+                )
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('volunteer_profile', None)
+        user = super().update(instance, validated_data)
+        if profile_data is None:
+            return user
+
+        experiences = profile_data.pop('experiences', None)
+        education = profile_data.pop('education', None)
+        vp, _ = VolunteerProfile.objects.get_or_create(user=user)
+        for attr, val in profile_data.items():
+            setattr(vp, attr, val)
+        vp.save()
+        self._sync_cv_entries(user, experiences, education)
+        return user
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -43,11 +106,13 @@ class RegisterSerializer(serializers.Serializer):
     street_address = serializers.CharField(required=False, allow_blank=True)
     town = serializers.CharField(required=False, allow_blank=True)
     postal_code = serializers.CharField(required=False, allow_blank=True)
+    country = serializers.CharField(required=False, allow_blank=True)
     region = serializers.CharField(required=False, allow_blank=True)
     gender = serializers.CharField(required=False, allow_blank=True)
     age_group = serializers.CharField(required=False, allow_blank=True)
     nationality = serializers.CharField(required=False, allow_blank=True)
     english_level = serializers.CharField(required=False, allow_blank=True)
+    swahili_level = serializers.CharField(required=False, allow_blank=True)
     interest_area = serializers.CharField(required=False, allow_blank=True)
     volunteered_before = serializers.BooleanField(required=False, allow_null=True, default=None)
     password = serializers.CharField(write_only=True, min_length=8)
@@ -71,16 +136,13 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         profile_fields = [
-            'region', 'gender', 'age_group', 'nationality',
-            'english_level', 'interest_area', 'volunteered_before',
+            'country', 'region', 'gender', 'age_group', 'nationality',
+            'english_level', 'swahili_level', 'interest_area', 'volunteered_before',
         ]
-        profile_kwargs = {k: validated_data.pop(k, '') for k in profile_fields}
+        profile_kwargs = {k: validated_data.pop(k, '') for k in profile_fields if k != 'volunteered_before'}
         profile_kwargs['volunteered_before'] = validated_data.pop('volunteered_before', None)
 
         validated_data.pop('password2', None)
-        validated_data.pop('accepted_terms', None)
-        validated_data.pop('accepted_privacy_policy', None)
-
         password = validated_data.pop('password')
         validated_data['role'] = 'volunteer'
         user = User.objects.create_user(**validated_data, password=password)

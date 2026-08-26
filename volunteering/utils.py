@@ -1,9 +1,8 @@
 RANKS = [
     ('newcomer', 0),
-    ('bronze', 40),
-    ('silver', 100),
-    ('gold', 200),
-    ('platinum', 500),
+    ('active', 40),
+    ('elite', 100),
+    ('platinum', 140),
 ]
 
 

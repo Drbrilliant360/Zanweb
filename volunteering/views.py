@@ -1,9 +1,7 @@
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from django.db.models import Sum
-from accounts.models import VolunteerProfile
 from accounts.permissions import IsAdminRole, IsCoordinatorOrAdmin
 from .models import (
     Event, EventRegistration, ImpactLog, Badge,
@@ -15,7 +13,6 @@ from .serializers import (
     CoordinatorMessageSerializer,
 )
 from . import services
-from .utils import get_rank_info
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -171,55 +168,3 @@ class CoordinatorMessageViewSet(viewsets.ModelViewSet):
         ser.is_valid(raise_exception=True)
         ser.save(sender=request.user)
         return Response(ser.data, status=status.HTTP_201_CREATED)
-
-
-class VolunteerDashboardView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        vp, _ = VolunteerProfile.objects.get_or_create(user=request.user)
-        hours = float(vp.total_impact_hours)
-        rank_info = get_rank_info(hours)
-        upcoming = EventRegistration.objects.filter(
-            volunteer=request.user,
-        ).exclude(
-            status='cancelled',
-        ).select_related('event').order_by('event__date')[:5]
-        badges = VolunteerBadge.objects.filter(volunteer=request.user).select_related('badge')
-        latest_msg = CoordinatorMessage.objects.filter(
-            recipient=request.user,
-        ).order_by('-created_at').first()
-        return Response({
-            'greeting_name': request.user.get_full_name() or request.user.email,
-            'total_impact_hours': hours,
-            'rank': rank_info['rank'],
-            'next_rank_threshold_hours': float(vp.next_rank_threshold_hours),
-            'percent_to_next_rank': rank_info['percent_to_next_rank'],
-            'upcoming_shifts': [
-                {
-                    'event_title': r.event.title,
-                    'date': r.event.date,
-                    'start_time': r.event.start_time,
-                    'end_time': r.event.end_time,
-                    'location': r.event.location,
-                }
-                for r in upcoming
-            ],
-            'recognitions': [
-                {
-                    'badge_name': b.badge.name,
-                    'icon': b.badge.icon,
-                    'awarded_at': b.awarded_at,
-                }
-                for b in badges
-            ],
-            'latest_coordinator_message': (
-                {
-                    'id': latest_msg.id,
-                    'sender_name': latest_msg.sender.get_full_name() or latest_msg.sender.email,
-                    'body': latest_msg.body,
-                    'created_at': latest_msg.created_at,
-                }
-                if latest_msg else None
-            ),
-        })

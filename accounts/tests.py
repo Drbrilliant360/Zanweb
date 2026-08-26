@@ -29,12 +29,53 @@ class AuthTests(TestCase):
             'email': 'new@test.com', 'password': 'testpass123', 'password2': 'testpass123',
             'first_name': 'New', 'last_name': 'User',
             'accepted_terms': True, 'accepted_privacy_policy': True,
+            'country': 'Tanzania', 'swahili_level': 'fluent',
         }
         r = self.client.post('/api/auth/register/', data, format='json')
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         self.assertIn('access', r.data)
         self.assertIn('user', r.data)
         self.assertEqual(r.data['user']['email'], 'new@test.com')
+        user = User.objects.get(email='new@test.com')
+        self.assertTrue(user.accepted_terms)
+        self.assertTrue(user.accepted_privacy_policy)
+        self.assertEqual(user.volunteer_profile.country, 'Tanzania')
+        self.assertEqual(user.volunteer_profile.swahili_level, 'fluent')
+
+    def test_me_update_profile_cv(self):
+        self.client.force_authenticate(user=self.vol)
+        r = self.client.patch('/api/auth/me/', {
+            'volunteer_profile': {
+                'bio': 'Motivated volunteer',
+                'skills': 'Teaching, Leadership',
+                'experiences': [{
+                    'title': 'Event Coordinator',
+                    'organization': 'ZCM',
+                    'dates': '2025',
+                    'description': 'Organized beach cleanup',
+                }],
+                'education': [{
+                    'degree': 'Diploma',
+                    'school': 'Test University',
+                    'dates': '2021-2024',
+                }],
+            },
+        }, format='json')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['volunteer_profile']['bio'], 'Motivated volunteer')
+        self.assertEqual(len(r.data['volunteer_profile']['experiences']), 1)
+        self.assertEqual(len(r.data['volunteer_profile']['education']), 1)
+        self.vol.refresh_from_db()
+        self.assertEqual(self.vol.volunteer_profile.bio, 'Motivated volunteer')
+        self.assertEqual(self.vol.experiences.count(), 1)
+        self.assertEqual(self.vol.education_entries.count(), 1)
+
+    def test_me_role_not_writable(self):
+        self.client.force_authenticate(user=self.vol)
+        r = self.client.patch('/api/auth/me/', {'role': 'admin'}, format='json')
+        self.assertEqual(r.status_code, 200)
+        self.vol.refresh_from_db()
+        self.assertEqual(self.vol.role, 'volunteer')
 
     def test_register_duplicate_email(self):
         data = {

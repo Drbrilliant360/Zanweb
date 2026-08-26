@@ -267,7 +267,7 @@
                 <div class="dstat"><strong id="statRegistered">0</strong><span>Registered</span></div>
                 <div class="dstat"><strong id="statAttended">0</strong><span>Attended</span></div>
                 <div class="dstat"><strong id="statHours">0</strong><span>Est. Hours</span></div>
-                <button class="btn" onclick="clearTokens();window.location.href='/login/'">Sign Out</button>
+                <button class="btn" onclick="signOut()">Sign Out</button>
             </div>
         </div>
         <div class="dash-tabs">
@@ -433,6 +433,12 @@
         profile.avatar = me.avatar || '';
         profile.bio = vp.bio || '';
         profile.skills = vp.skills ? vp.skills.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : [];
+        profile.experience = (vp.experiences || []).map(function(e) {
+          return { title: e.title, org: e.organization || '', dates: e.dates || '', desc: e.description || '' };
+        });
+        profile.education = (vp.education || []).map(function(e) {
+          return { degree: e.degree, school: e.school || '', dates: e.dates || '' };
+        });
         DASH_DB.set(PROFILE_KEY, profile);
       } catch(e) { /* keep localStorage fallback */ }
     }
@@ -532,6 +538,7 @@
           profile.skills.splice(parseInt(b.dataset.i), 1);
           DASH_DB.set(PROFILE_KEY, profile);
           renderSkills();
+          saveCVToAPI();
         });
       });
     }
@@ -551,6 +558,7 @@
           profile.experience.splice(parseInt(b.dataset.i), 1);
           DASH_DB.set(PROFILE_KEY, profile);
           renderExperience();
+          saveCVToAPI();
         });
       });
     }
@@ -570,6 +578,7 @@
           profile.education.splice(parseInt(b.dataset.i), 1);
           DASH_DB.set(PROFILE_KEY, profile);
           renderEducation();
+          saveCVToAPI();
         });
       });
     }
@@ -581,12 +590,46 @@
     }
 
     function saveProfileToAPI() {
-      apiPatch('/api/auth/me/', {
+      return apiPatch('/api/auth/me/', {
         first_name: (profile.name || '').split(' ')[0] || '',
         last_name: (profile.name || '').split(' ').slice(1).join(' ') || '',
         phone_number: profile.phone || '',
         street_address: profile.location || ''
       });
+    }
+
+    function saveCVToAPI() {
+      return apiPatch('/api/auth/me/', {
+        volunteer_profile: {
+          bio: profile.bio || '',
+          skills: (profile.skills || []).join(', '),
+          location: profile.location || '',
+          experiences: (profile.experience || []).map(function(e) {
+            return {
+              title: e.title,
+              organization: e.org || '',
+              dates: e.dates || '',
+              description: e.desc || '',
+            };
+          }),
+          education: (profile.education || []).map(function(e) {
+            return {
+              degree: e.degree,
+              school: e.school || '',
+              dates: e.dates || '',
+            };
+          }),
+        },
+      });
+    }
+
+    async function signOut() {
+      try {
+        const refresh = typeof getRefreshToken === 'function' ? getRefreshToken() : null;
+        if (refresh) await apiPost('/api/auth/logout/', { refresh });
+      } catch (e) { /* proceed with local logout */ }
+      clearTokens();
+      window.location.href = '/login/';
     }
 
     /* ---- Edit Basics ---- */
@@ -648,6 +691,7 @@
       renderBio();
       document.getElementById('bioDisplay').style.display = 'block';
       document.getElementById('bioEditArea').style.display = 'none';
+      saveCVToAPI();
       showToast('About Me saved');
     });
 
@@ -659,6 +703,7 @@
       input.value = '';
       DASH_DB.set(PROFILE_KEY, profile);
       renderSkills();
+      saveCVToAPI();
     }
     document.getElementById('addSkillBtn').addEventListener('click', addSkill);
     document.getElementById('inSkillAdd').addEventListener('keydown', function(e) {
@@ -683,6 +728,7 @@
         renderExperience();
         wrap.remove();
         document.getElementById('addExpBtn').style.display = 'block';
+        saveCVToAPI();
         showToast('Experience added');
       });
     });
@@ -704,6 +750,7 @@
         renderEducation();
         wrap.remove();
         document.getElementById('addEduBtn').style.display = 'block';
+        saveCVToAPI();
         showToast('Education added');
       });
     });
@@ -801,6 +848,10 @@
 
     /* Init: load from APIs then render */
     (async function init() {
+      if (typeof isAuthenticated === 'function' && !isAuthenticated()) {
+        window.location.href = '/login/';
+        return;
+      }
       if (typeof apiGet !== 'undefined') {
         await loadProfileFromAPI();
         await loadEventsFromAPI();

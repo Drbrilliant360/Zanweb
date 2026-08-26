@@ -48,6 +48,18 @@ class DashboardTests(TestCase):
         self.assertEqual(len(r.data['upcoming_shifts']), 1)
         self.assertEqual(r.data['upcoming_shifts'][0]['event_title'], 'Clean-Up')
 
+    def test_volunteer_dashboard_rank_matches_profile(self):
+        vp, _ = VolunteerProfile.objects.get_or_create(user=self.vol)
+        vp.total_impact_hours = 50
+        vp.save(update_fields=['total_impact_hours'])
+        vp.recompute_rank()
+        self.client.force_authenticate(user=self.vol)
+        r = self.client.get('/api/dashboard/volunteer/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['rank'], vp.rank)
+        self.assertEqual(r.data['next_rank_threshold_hours'], float(vp.next_rank_threshold_hours))
+        self.assertEqual(r.data['percent_to_next_rank'], 16)
+
     def test_admin_dashboard_auth_required(self):
         r = self.client.get('/api/dashboard/admin/')
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
