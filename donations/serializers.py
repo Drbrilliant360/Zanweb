@@ -20,26 +20,28 @@ class DonationCampaignSerializer(serializers.ModelSerializer):
 
 
 class DonationSerializer(serializers.ModelSerializer):
-    ussd_instructions = serializers.SerializerMethodField()
-
     class Meta:
         model = Donation
         fields = '__all__'
         read_only_fields = ['status', 'transaction_reference', 'donor', 'created_at', 'completed_at', 'currency']
 
-    def get_ussd_instructions(self, obj):
-        if obj.method == 'mobile_money' and obj.mobile_provider:
-            instructions = {
-                'ezypesa': 'Dial *150*02# and follow the prompts. Merchant ID: 889900',
-                'airtel_money': 'Dial *150*60# and follow the prompts. Business Number: 445566',
-                'mpesa': 'Send via M-Pesa. Reference: ZANCHANGEMAKERS',
-            }
-            return instructions.get(obj.mobile_provider, 'Follow your mobile money provider instructions.')
-        return None
-
     def validate(self, data):
-        if data.get('method') == 'mobile_money' and not data.get('mobile_provider'):
-            raise serializers.ValidationError({'mobile_provider': 'Mobile provider is required for mobile money payments.'})
+        method = data.get('method')
+        if method == 'mobile_money':
+            if not data.get('donor_phone'):
+                raise serializers.ValidationError({
+                    'donor_phone': 'Phone number is required for mobile money payments.',
+                })
+            if not data.get('donor_email'):
+                raise serializers.ValidationError({
+                    'donor_email': 'Email is required for mobile money payments.',
+                })
+            amount = data.get('amount')
+            if amount is not None and int(amount) < 500:
+                raise serializers.ValidationError({
+                    'amount': 'Minimum mobile money donation is 500 TZS.',
+                })
+            data['currency'] = 'TZS'
         return data
 
     def create(self, validated_data):

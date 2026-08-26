@@ -9,6 +9,7 @@ from .serializers import (
     DonationSerializer,
     ConfirmDonationSerializer,
 )
+from .snippe import SnippeError
 from . import services
 
 
@@ -40,7 +41,13 @@ class DonationViewSet(viewsets.ModelViewSet):
         ser = self.get_serializer(data=request.data)
         ser.is_valid(raise_exception=True)
         donation = ser.save()
-        payment_instructions = services.initiate_payment(donation)
+        try:
+            payment_instructions = services.initiate_payment(donation)
+        except SnippeError as exc:
+            return Response(
+                {'detail': str(exc), 'error_code': exc.error_code},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
         return Response({
             'donation': DonationSerializer(donation, context=self.get_serializer_context()).data,
             'payment_instructions': payment_instructions,

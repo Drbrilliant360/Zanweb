@@ -232,14 +232,20 @@
                     body: JSON.stringify({
                         donor_name: document.getElementById('donorName').value.trim(),
                         donor_email: document.getElementById('donorEmail').value.trim(),
-                        amount: parseFloat(document.getElementById('donorAmount').value) || 0,
+                        donor_phone: document.getElementById('donorPhone').value.trim(),
+                        amount: parseFloat(document.getElementById('donorAmount').value.replace(/,/g, '')) || 0,
                         message: document.getElementById('donorMessage').value.trim(),
                         method: 'mobile_money',
                     }),
                 });
                 if (res.ok) {
+                    const data = await res.json();
                     document.getElementById('paymentForm').style.display = 'none';
                     document.getElementById('successCard').style.display = 'block';
+                    const msg = data.payment_instructions && data.payment_instructions.message;
+                    if (msg) {
+                        document.querySelector('#successCard p').textContent = msg;
+                    }
                 } else {
                     const data = await res.json();
                     alert(Object.values(data).flat().join('. ') || 'Payment failed.');

@@ -182,3 +182,10 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+# ── Payments (Snippe USSD / Mobile Money) ─────────────────────
+PAYMENT_GATEWAY_PROVIDER = os.environ.get('PAYMENT_GATEWAY_PROVIDER', 'snippe')
+SNIPPE_API_KEY = os.environ.get('SNIPPE_API_KEY', '')
+SNIPPE_WEBHOOK_SECRET = os.environ.get('SNIPPE_WEBHOOK_SECRET', '')
+SNIPPE_API_BASE_URL = os.environ.get('SNIPPE_API_BASE_URL', 'https://api.snippe.sh')
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'http://127.0.0.1:8000')
+

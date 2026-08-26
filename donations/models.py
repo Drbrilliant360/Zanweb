@@ -68,6 +68,7 @@ class Donation(models.Model):
     campaign = models.ForeignKey(DonationCampaign, on_delete=models.SET_NULL, blank=True, null=True, related_name='donations')
     donor_name = models.CharField(max_length=200, blank=True)
     donor_email = models.EmailField(blank=True)
+    donor_phone = models.CharField(max_length=20, blank=True)
     donor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -75,7 +76,7 @@ class Donation(models.Model):
         related_name='donations',
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default='TZS')
     method = models.CharField(max_length=20, choices=METHOD_CHOICES)
     mobile_provider = models.CharField(max_length=20, choices=MOBILE_PROVIDER_CHOICES, blank=True)
     transaction_reference = models.CharField(max_length=100, blank=True)
