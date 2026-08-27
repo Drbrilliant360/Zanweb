@@ -2101,3 +2101,74 @@ html, body {
 body{margin:0}
 
 .site-header{position:sticky;top:0;background:#fff}.nav-wrap{display:flex;justify-content:space-between;align-items:center;padding:15px}.nav-menu a{margin:0 8px;text-decoration:none}.brand{font-weight:bold}
+
+/* ============================================================
+   GLOBAL MOBILE PAGE POLISH
+   ============================================================ */
+@media (max-width: 768px) {
+    .nav-inner {
+        padding: 0 1rem;
+        height: 60px;
+        gap: 1rem;
+    }
+
+    .nav-logo img {
+        height: 36px;
+    }
+
+    #hero {
+        min-height: auto;
+        padding: 80px 16px 48px;
+    }
+
+    .hero-copy {
+        padding: 0 8px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+        min-height: 48px;
+    }
+
+    .stat-row,
+    .stats-row {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px;
+    }
+
+    .prog,
+    .about-grid,
+    .contact-grid,
+    .donate-grid {
+        gap: 2rem;
+    }
+
+    .card,
+    .program-card,
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    #partners {
+        padding: 48px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-row,
+    .stats-row,
+    .d-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hero-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: repeat(8, 1fr) !important;
+    }
+}

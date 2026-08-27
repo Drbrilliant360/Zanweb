@@ -30,7 +30,14 @@ SECRET_KEY = "django-insecure-y0*1gpc1ne2o*@q+$lk#bs%)-nok4568e2y0+t%*!telp=9@z1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+_allowed = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
+_site = os.environ.get('SITE_BASE_URL', '')
+if _site:
+    from urllib.parse import urlparse
+    _host = urlparse(_site).hostname
+    if _host and _host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
 
 
 # Application definition
@@ -187,5 +194,8 @@ PAYMENT_GATEWAY_PROVIDER = os.environ.get('PAYMENT_GATEWAY_PROVIDER', 'snippe')
 SNIPPE_API_KEY = os.environ.get('SNIPPE_API_KEY', '')
 SNIPPE_WEBHOOK_SECRET = os.environ.get('SNIPPE_WEBHOOK_SECRET', '')
 SNIPPE_API_BASE_URL = os.environ.get('SNIPPE_API_BASE_URL', 'https://api.snippe.sh')
+SNIPPE_API_VERSION = os.environ.get('SNIPPE_API_VERSION', '2026-01-25')
 SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'http://127.0.0.1:8000')
+# Required — HTTPS only (Snippe VAL_001). Register in Snippe Dashboard → Webhooks.
+SNIPPE_WEBHOOK_URL = os.environ.get('SNIPPE_WEBHOOK_URL', '')
 

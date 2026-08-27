@@ -7,6 +7,14 @@
 /* ── API Helpers ── */
 const API_BASE = '/api';
 
+function resolveApiUrl(path) {
+  if (!path) return API_BASE;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  if (path.startsWith('/api/')) return path;
+  if (path.startsWith('/')) return API_BASE + path;
+  return API_BASE + '/' + path;
+}
+
 function getToken() {
   return localStorage.getItem('zcm_access_token');
 }
@@ -15,14 +23,25 @@ function getRefreshToken() {
   return localStorage.getItem('zcm_refresh_token');
 }
 
-function setTokens(access, refresh) {
+function setTokens(access, refresh, user) {
   localStorage.setItem('zcm_access_token', access);
   if (refresh) localStorage.setItem('zcm_refresh_token', refresh);
+  if (user && user.role) localStorage.setItem('zcm_user_role', user.role);
 }
 
 function clearTokens() {
   localStorage.removeItem('zcm_access_token');
   localStorage.removeItem('zcm_refresh_token');
+  localStorage.removeItem('zcm_user_role');
+}
+
+function isAdminUser(user) {
+  if (!user) return false;
+  return user.role === 'admin' || user.role === 'coordinator';
+}
+
+function getPostLoginRedirect(user) {
+  return isAdminUser(user) ? '/admin-workspace/' : '/dash/';
 }
 
 function isAuthenticated() {
@@ -30,7 +49,7 @@ function isAuthenticated() {
 }
 
 async function apiFetch(path, options = {}) {
-  const url = API_BASE + path;
+  const url = resolveApiUrl(path);
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
   if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -155,9 +174,49 @@ async function apiPut(path, body) {
     // Insert at top of body
     document.body.insertBefore(header, document.body.firstChild);
 
-    // Hamburger toggle
-    document.getElementById('zcmHamburger').addEventListener('click', function () {
-      document.getElementById('zcmMobileNav').classList.toggle('open');
+    const overlay = document.createElement('div');
+    overlay.className = 'zcm-nav-overlay';
+    overlay.id = 'zcmNavOverlay';
+    document.body.appendChild(overlay);
+
+    const hamburger = document.getElementById('zcmHamburger');
+    const mobileNav = document.getElementById('zcmMobileNav');
+
+    function closeMobileNav() {
+      mobileNav.classList.remove('open');
+      hamburger.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.classList.remove('nav-open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    }
+
+    function openMobileNav() {
+      mobileNav.classList.add('open');
+      hamburger.classList.add('open');
+      overlay.classList.add('open');
+      document.body.classList.add('nav-open');
+      hamburger.setAttribute('aria-expanded', 'true');
+    }
+
+    hamburger.setAttribute('aria-expanded', 'false');
+    hamburger.addEventListener('click', function () {
+      if (mobileNav.classList.contains('open')) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
+    });
+
+    overlay.addEventListener('click', closeMobileNav);
+
+    mobileNav.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', closeMobileNav);
+    });
+
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 1024) {
+        closeMobileNav();
+      }
     });
   }
 

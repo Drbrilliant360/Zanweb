@@ -29,7 +29,7 @@ class DonationViewSet(viewsets.ModelViewSet):
     serializer_class = DonationSerializer
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ('create', 'payment_status'):
             return [permissions.AllowAny()]
         return [IsAdminRole()]
 
@@ -60,6 +60,23 @@ class DonationViewSet(viewsets.ModelViewSet):
         confirm_ser.is_valid(raise_exception=True)
         services.confirm_payment(donation, confirm_ser.validated_data['transaction_reference'])
         return Response(DonationSerializer(donation).data)
+
+    @action(detail=True, methods=['get'], permission_classes=[permissions.AllowAny])
+    def payment_status(self, request, pk=None):
+        donation = self.get_object()
+        if donation.transaction_reference and donation.status == 'pending':
+            try:
+                services.sync_snippe_payment_status(donation)
+            except SnippeError as exc:
+                return Response(
+                    {'detail': str(exc), 'error_code': exc.error_code},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
+        return Response({
+            'id': donation.id,
+            'status': donation.status,
+            'transaction_reference': donation.transaction_reference,
+        })
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdminRole])
     def mark_failed(self, request, pk=None):

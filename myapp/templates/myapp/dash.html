@@ -204,6 +204,30 @@
         @media (max-width: 980px) { .events-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .events-grid { grid-template-columns: 1fr; } }
 
+        @media (max-width: 768px) {
+            .dash-hero { padding-top: 28px; }
+            .dash-hero-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 16px 22px;
+            }
+            .dash-welcome h1 { font-size: 1.35rem; }
+            .dash-stats { width: 100%; gap: 10px; }
+            .dstat { flex: 1; min-width: calc(50% - 5px); }
+            .dash-tabs { padding: 0 16px; gap: 4px; }
+            .dash-tab-btn { padding: 11px 16px; font-size: 0.8rem; }
+            .dash-main { padding: 24px 16px 64px; }
+            .panel-head { flex-direction: column; align-items: flex-start; }
+            .panel-head h2 { font-size: 1.45rem; }
+            .pf-section { padding: 20px 16px; }
+            .pf-card { padding: 22px 18px; }
+            .saved-toast {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+            }
+        }
+
         .ev-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
         .ev-card:hover { transform: translateY(-4px); }
         .ev-poster { position: relative; height: 170px; overflow: hidden; }

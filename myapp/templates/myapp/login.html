@@ -105,6 +105,13 @@
         .m-switch { font-size: 0.88rem; margin-top: 20px; color: #666; }
         .m-switch a { color: var(--crimson); font-weight: 600; text-decoration: none; cursor: pointer; }
         .m-switch a:hover { text-decoration: underline; }
+
+        @media (max-width: 560px) {
+            .page-wrapper { padding: 24px 16px; align-items: flex-start; }
+            .page-card { padding: 32px 22px; border-radius: 12px; }
+            .m-title { font-size: 1.75rem; }
+            .btn-submit { min-height: 48px; }
+        }
     </style>
 </head>
 <body>
@@ -173,8 +180,8 @@
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        setTokens(data.access, data.refresh);
-                        window.location.href = '/dash/';
+                        setTokens(data.access, data.refresh, data.user);
+                        window.location.href = getPostLoginRedirect(data.user);
                     } else {
                         errEl.textContent = data.non_field_errors ? data.non_field_errors[0] : 'Invalid email or password.';
                         errEl.style.display = 'block';

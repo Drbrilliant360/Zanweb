@@ -3,7 +3,13 @@ from django.db.models import F
 from django.utils import timezone
 
 from .models import DonationCampaign
-from .snippe import SnippeError, create_mobile_payment, split_name
+from .snippe import (
+    SnippeError,
+    create_mobile_payment,
+    get_payment_status,
+    require_snippe_webhook_url,
+    split_name,
+)
 
 
 def initiate_payment(donation):
@@ -38,7 +44,7 @@ def initiate_snippe_payment(donation):
     if amount < 500:
         raise SnippeError('Minimum mobile money donation is 500 TZS')
 
-    webhook_url = f"{settings.SITE_BASE_URL.rstrip('/')}/api/webhooks/snippe/"
+    webhook_url = require_snippe_webhook_url()
     email = donation.donor_email or f'donor-{donation.id}@zanchangemakers.local'
 
     try:
@@ -72,7 +78,25 @@ def initiate_snippe_payment(donation):
             'Enter your mobile money PIN to authorize the payment.'
         ),
         'phone_number': donation.donor_phone,
+        'donation_id': donation.id,
     }
+
+
+def sync_snippe_payment_status(donation):
+    if not donation.transaction_reference:
+        return donation.status
+
+    result = get_payment_status(donation.transaction_reference)
+    payment_status = result.get('status', '')
+    reference = result.get('reference', donation.transaction_reference)
+
+    if payment_status == 'completed':
+        confirm_payment(donation, reference)
+    elif payment_status in ('failed', 'expired', 'voided'):
+        fail_payment(donation, payment_status)
+
+    donation.refresh_from_db()
+    return donation.status
 
 
 def confirm_payment(donation, transaction_reference):

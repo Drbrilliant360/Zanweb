@@ -902,3 +902,227 @@ section,img,.card,.gallery-item,.hero,.container{
 body{
  scroll-behavior:smooth;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE & UI POLISH
+   ============================================================ */
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.zcm-nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 26, 54, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  backdrop-filter: blur(2px);
+}
+
+.zcm-nav-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+body.nav-open {
+  overflow: hidden;
+}
+
+.zcm-hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.zcm-hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.zcm-hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+.zcm-mobile-nav a.active {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.zcm-mobile-nav .btn-login {
+  background: var(--navy);
+  color: var(--white) !important;
+  margin-top: 8px;
+}
+
+.zcm-mobile-nav .btn-donate {
+  background: var(--crimson);
+  color: var(--white) !important;
+}
+
+@media (max-width: 1024px) {
+  .zcm-mobile-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: min(320px, 88vw);
+    height: 100vh;
+    height: 100dvh;
+    padding: 84px 20px 28px;
+    z-index: 1001;
+    box-shadow: -8px 0 32px rgba(15, 26, 54, 0.18);
+    transition: right 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-top: none;
+    gap: 4px;
+  }
+
+  .zcm-mobile-nav.open {
+    right: 0;
+  }
+
+  .zcm-mobile-nav a {
+    padding: 14px 14px;
+    font-size: 0.95rem;
+    border-bottom: none;
+    border-radius: 8px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+
+  .zcm-mobile-nav a:active {
+    background: var(--bg2);
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-top: 64px;
+  }
+
+  .zcm-nav {
+    height: 64px;
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .zcm-logo img {
+    height: 52px;
+  }
+
+  .zcm-header.scrolled .zcm-nav {
+    height: 56px;
+  }
+
+  .zcm-header.scrolled .zcm-logo img {
+    height: 44px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .section-h {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+  }
+
+  .zcm-info-bar {
+    padding: 22px 0;
+  }
+
+  .zcm-info-bar .ib-inner {
+    padding: 0 16px;
+    gap: 14px;
+  }
+
+  .zcm-footer {
+    padding-top: 48px;
+  }
+
+  .zcm-footer .ft-inner {
+    padding: 0 16px;
+  }
+
+  .zcm-footer .ft-grid {
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+
+  .ft-partner-logos {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .ft-partner-logos img {
+    height: 72px;
+  }
+
+  .ft-copyright p {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    padding: 0 8px;
+  }
+
+  input,
+  select,
+  textarea,
+  .field-txt {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .zcm-nav {
+    padding: 0 12px;
+  }
+
+  .zcm-logo img {
+    height: 46px;
+  }
+
+  .zcm-chat-btn {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .zcm-chatbox {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 84px;
+    max-height: calc(100dvh - 100px);
+  }
+
+  .chat-messages {
+    max-height: min(260px, 40dvh);
+  }
+
+  .ft-partner-logos img {
+    height: 56px;
+  }
+}
+
+@media (hover: none) {
+  img:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from accounts.models import User
 from .models import DonationCampaign, DonationTier, Donation
+from .snippe import SnippeError, require_snippe_webhook_url, resolve_snippe_webhook_url
 
 
 @override_settings(PAYMENT_GATEWAY_PROVIDER='manual')
@@ -126,11 +127,28 @@ class DonationTests(TestCase):
 @override_settings(
     PAYMENT_GATEWAY_PROVIDER='snippe',
     SNIPPE_API_KEY='snp_test_key',
+    SNIPPE_API_BASE_URL='https://api.snippe.sh',
+    SNIPPE_API_VERSION='2026-01-25',
     SITE_BASE_URL='http://testserver',
+    SNIPPE_WEBHOOK_URL='https://zanweb.example.com/api/webhooks/snippe/',
 )
 class SnippeDonationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+
+    def test_resolve_webhook_url_requires_https(self):
+        with override_settings(SNIPPE_WEBHOOK_URL='', SITE_BASE_URL='http://localhost:8000'):
+            self.assertIsNone(resolve_snippe_webhook_url())
+            with self.assertRaises(SnippeError) as ctx:
+                require_snippe_webhook_url()
+            self.assertEqual(ctx.exception.error_code, 'VAL_001')
+        with override_settings(
+            SNIPPE_WEBHOOK_URL='https://zanweb.example.com/api/webhooks/snippe/',
+        ):
+            self.assertEqual(
+                require_snippe_webhook_url(),
+                'https://zanweb.example.com/api/webhooks/snippe/',
+            )
 
     @patch('donations.services.create_mobile_payment')
     def test_create_donation_triggers_snippe_ussd(self, mock_create):
@@ -150,6 +168,41 @@ class SnippeDonationTests(TestCase):
         self.assertEqual(r.data['payment_instructions']['provider'], 'snippe')
         self.assertEqual(r.data['payment_instructions']['reference'], 'pay-ref-123')
         mock_create.assert_called_once()
+        self.assertEqual(
+            mock_create.call_args.kwargs['webhook_url'],
+            'https://zanweb.example.com/api/webhooks/snippe/',
+        )
+
+    @override_settings(SNIPPE_WEBHOOK_URL='')
+    @patch('donations.services.create_mobile_payment')
+    def test_create_donation_fails_without_https_webhook(self, mock_create):
+        r = self.client.post('/api/donations/', {
+            'amount': 5000,
+            'method': 'mobile_money',
+            'donor_name': 'Jane Doe',
+            'donor_email': 'jane@example.com',
+            'donor_phone': '+255712345678',
+        }, format='json')
+        self.assertEqual(r.status_code, status.HTTP_502_BAD_GATEWAY)
+        mock_create.assert_not_called()
+
+    @patch('donations.services.get_payment_status')
+    def test_payment_status_polling(self, mock_status):
+        d = Donation.objects.create(
+            amount=5000,
+            method='mobile_money',
+            donor_name='Jane',
+            donor_email='jane@example.com',
+            donor_phone='255712345678',
+            transaction_reference='pay-ref-123',
+            status='pending',
+        )
+        mock_status.return_value = {'status': 'completed', 'reference': 'pay-ref-123'}
+        r = self.client.get(f'/api/donations/{d.id}/payment_status/')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data['status'], 'completed')
+        d.refresh_from_db()
+        self.assertEqual(d.status, 'completed')
 
     @patch('donations.services.handle_snippe_webhook')
     def test_snippe_webhook_endpoint(self, mock_handle):

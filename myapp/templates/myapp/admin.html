@@ -1660,6 +1660,18 @@ button { font-family: inherit; cursor: pointer; }
     });
 
     (async function initAdmin() {
+        if (typeof isAuthenticated === 'function' && !isAuthenticated()) {
+            window.location.href = '/login/';
+            return;
+        }
+        if (typeof apiGet !== 'undefined') {
+            const me = await apiGet('/auth/me/');
+            if (!isAdminUser(me)) {
+                window.location.href = '/dash/';
+                return;
+            }
+            if (me && me.role) localStorage.setItem('zcm_user_role', me.role);
+        }
         await loadAdminFromAPI();
         renderAll();
     })();

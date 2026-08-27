@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import json
 import time
 import uuid
 
@@ -19,10 +18,18 @@ def _headers(idempotency_key=None):
     headers = {
         'Authorization': f'Bearer {settings.SNIPPE_API_KEY}',
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
     }
+    api_version = getattr(settings, 'SNIPPE_API_VERSION', '')
+    if api_version:
+        headers['Snippe-Version'] = api_version
     if idempotency_key:
         headers['Idempotency-Key'] = idempotency_key[:30]
     return headers
+
+
+def _api_url(path):
+    return f'{settings.SNIPPE_API_BASE_URL.rstrip("/")}{path}'
 
 
 def _parse_response(response):
@@ -61,6 +68,34 @@ def split_name(full_name):
     return first, last
 
 
+def resolve_snippe_webhook_url():
+    """Return HTTPS webhook URL from SNIPPE_WEBHOOK_URL or SITE_BASE_URL."""
+    explicit = (getattr(settings, 'SNIPPE_WEBHOOK_URL', '') or '').strip()
+    if explicit:
+        url = explicit
+    else:
+        base = (getattr(settings, 'SITE_BASE_URL', '') or '').rstrip('/')
+        url = f'{base}/api/webhooks/snippe/' if base else ''
+
+    if url.startswith('https://') and len(url) <= 500:
+        return url
+    return None
+
+
+def require_snippe_webhook_url():
+    """Snippe requires webhook_url (HTTPS). VAL_001 if missing or not HTTPS."""
+    url = resolve_snippe_webhook_url()
+    if url:
+        return url
+    raise SnippeError(
+        'webhook_url is required and must use HTTPS (VAL_001). '
+        'Set SNIPPE_WEBHOOK_URL=https://your-domain.com/api/webhooks/snippe/ '
+        'and register it in Snippe Dashboard → Webhooks with payment.completed enabled. '
+        'For local testing: run "ngrok http 8000" and use the https ngrok URL.',
+        error_code='VAL_001',
+    )
+
+
 def create_mobile_payment(
     *,
     amount,
@@ -72,6 +107,11 @@ def create_mobile_payment(
 ):
     if not settings.SNIPPE_API_KEY:
         raise SnippeError('SNIPPE_API_KEY is not configured')
+    if not webhook_url or not webhook_url.startswith('https://'):
+        raise SnippeError(
+            'webhook_url is required and must use HTTPS (VAL_001)',
+            error_code='VAL_001',
+        )
 
     body = {
         'payment_type': 'mobile',
@@ -90,7 +130,7 @@ def create_mobile_payment(
     }
 
     response = requests.post(
-        f'{settings.SNIPPE_API_BASE_URL.rstrip("/")}/v1/payments',
+        _api_url('/v1/payments'),
         headers=_headers(idempotency_key or uuid.uuid4().hex[:30]),
         json=body,
         timeout=30,
@@ -103,7 +143,7 @@ def get_payment_status(reference):
         raise SnippeError('SNIPPE_API_KEY is not configured')
 
     response = requests.get(
-        f'{settings.SNIPPE_API_BASE_URL.rstrip("/")}/v1/payments/{reference}',
+        _api_url(f'/v1/payments/{reference}'),
         headers=_headers(),
         timeout=30,
     )
@@ -111,6 +151,9 @@ def get_payment_status(reference):
 
 
 def verify_webhook_signature(raw_body, headers, signing_key):
+    if not signing_key:
+        raise ValueError('SNIPPE_WEBHOOK_SECRET is not configured')
+
     timestamp = headers.get('X-Webhook-Timestamp') or headers.get('x-webhook-timestamp')
     signature = headers.get('X-Webhook-Signature') or headers.get('x-webhook-signature')
 
