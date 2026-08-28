@@ -3,7 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import mail_admins
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from accounts.permissions import IsCoordinatorOrAdminOrReadOnly
+import requests
+import urllib.parse
 from .models import (
     ContactMessage, NewsletterSubscriber, Partner,
     Story, GalleryImage, FAQ, OrgStat,
@@ -140,3 +144,120 @@ class FAQMatchView(APIView):
             'topic': 'No specific match',
             'question': None,
         })
+
+
+# Free online model proxy — Pollinations AI (no API key, OpenAI-compatible)
+# Found via https://text.pollinations.ai — free, anonymous tier, Mistral/Llama backing
+@method_decorator(csrf_exempt, name='dispatch')
+class ChatbotProxyView(APIView):
+    permission_classes = [permissions.AllowAny]
+    # Tanzanian context injected so free model answers as Zanchangemakers assistant
+    SYSTEM_PROMPT = (
+        "You are Zanchangemakers Support — a friendly assistant for Zanchangemakers, "
+        "a youth volunteer movement based in Zanzibar, Tanzania. "
+        "You help with: programs (Youth Volunteers Forum, career placements), "
+        "volunteering, donations (TZS via mobile money PBZ bank), contact info "
+        "(+255 777 426 972, info@zanchangemakers.co.tz, Zanzibar). "
+        "Answer concisely, warmly, in English or Swahili as the user prefers. "
+        "If unsure, invite them to visit /contact/ or call. Keep replies under 90 words."
+    )
+
+    def post(self, request):
+        msg = (request.data.get('message') or request.data.get('prompt') or '').strip()
+        if not msg:
+            msg = (request.query_params.get('q') or '').strip()
+        if not msg:
+            return Response({'detail': 'message is required'}, status=status.HTTP_400_BAD_REQUEST)
+        # First try FAQ quick match for speed
+        # Then try free online model
+        import time as _time
+        try:
+            # Try lightweight GET first (fast, free, no key) — just the user message with short Zanzibar context
+            enc_simple = urllib.parse.quote(msg, safe="")
+            g = requests.get(f"https://text.pollinations.ai/{enc_simple}", timeout=10)
+            if g.status_code == 429:
+                _time.sleep(1.5)
+                g = requests.get(f"https://text.pollinations.ai/{enc_simple}", timeout=10)
+            if g.ok and g.text.strip():
+                txt = g.text.strip()
+                if not txt.lower().startswith("<!doctype") and "queue full" not in txt.lower() and len(txt) >= 1:
+                    return Response({"reply": txt[:1200], "model": "pollinations-free", "source": "pollinations.ai (free online)"})
+            # Fallback: OpenAI-compatible endpoint with system prompt (better for Zanchangemakers context)
+            poll_url = "https://text.pollinations.ai/openai"
+            payload = {
+                "model": "openai",
+                "messages": [
+                    {"role": "system", "content": self.SYSTEM_PROMPT},
+                    {"role": "user", "content": msg}
+                ],
+                "temperature": 0.7,
+                "max_tokens": 280,
+            }
+            r = requests.post(poll_url, json=payload, timeout=12, headers={"Content-Type": "application/json"})
+            if r.status_code == 429:
+                _time.sleep(1.5)
+                r = requests.post(poll_url, json=payload, timeout=12, headers={"Content-Type": "application/json"})
+            if r.ok:
+                try:
+                    j = r.json()
+                except Exception:
+                    j = {}
+                reply = ""
+                try:
+                    reply = j["choices"][0]["message"]["content"].strip()
+                except Exception:
+                    reply = j.get("choices", [{}])[0].get("message", {}).get("content", "") or r.text.strip()
+                if reply and "queue full" not in reply.lower():
+                    return Response({
+                        "reply": reply,
+                        "model": j.get("model", "pollinations-free"),
+                        "source": "pollinations.ai (free online)",
+                    })
+        except Exception as e:
+            # network failure → fallback to local FAQ
+            pass
+        # Fallback: local FAQ match
+        qlow = msg.lower()
+        best = None
+        best_score = 0
+        for entry in FAQ.objects.filter(is_active=True):
+            score = sum(1 for kw in entry.keyword_list if kw.lower() in qlow)
+            if score > best_score:
+                best_score = score
+                best = entry
+        if best and best_score > 0:
+            return Response({"reply": best.answer, "model": "local-faq", "source": "offline fallback"})
+        # Last resort: helpful generic answer that still acknowledges the query (covers “all queries” when free model is rate-limited)
+        # This keeps chatbot responsive even when pollinations.ai queue is full
+        low = msg.lower()
+        # Tailor fallback by intent for better UX
+        if any(k in low for k in ["hello","hi","hey","jambo","habari"]):
+            fb = "Hello! 👋 Karibu Zanchangemakers! Ask me anything — programs, volunteering, donations (TZS), or just chat. How can I help today?"
+        elif "tanzania" in low or "zanzibar" in low:
+            fb = (
+                f"You asked: “{msg}” — Zanchangemakers is a Zanzibar-based youth movement since 2021, "
+                "running the Youth Volunteers Forum (YVF) and career placement cohorts across Tanzania. "
+                "We’d love you to volunteer via /volunteer/ or donate TZS via PBZ (0836881001) / Mix by Yas (44348982). "
+                "Reach us at +255 777 426 972 or info@zanchangemakers.co.tz."
+            )
+        else:
+            fb = (
+                f"Thanks for asking: “{msg}”\n\n"
+                "I’m Zanchangemakers Support (free AI via pollinations.ai when online, offline fallback otherwise). "
+                "We empower youth through volunteerism & skills in Zanzibar/Tanzania. I can help with:\n"
+                "• Programs: YVF, career placements — see /programs/\n"
+                "• Volunteering: join via /volunteer/\n"
+                "• Donations: TZS via PBZ 0836881001 or Mix by Yas 44348982 — /donate/\n"
+                "• Contact: +255 777 426 972, info@zanchangemakers.co.tz, /contact/\n\n"
+                "Feel free to rephrase or ask anything — I’ll do my best to answer!"
+            )
+        return Response({
+            "reply": fb,
+            "model": "local-fallback",
+            "source": "offline fallback (pollinations.ai busy, answering locally)",
+        })
+
+    def get(self, request):
+        # Allow GET ?q=hello for easy browser testing
+        request.data = {"message": request.query_params.get("q", "")}
+        return self.post(request)

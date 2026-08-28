@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 
 def application_success(request):
@@ -14,6 +15,19 @@ def contact_view(request):
     return render(request, 'myapp/contact.html')
 
 def admin_view(request):
+    # JS handles JWT-based auth (localStorage token) — server can't see it on page GET.
+    # Only intervene when we *know* via session that a logged-in non-admin is trying to access.
+    if request.user.is_authenticated:
+        is_admin = (
+            getattr(request.user, 'is_admin_role', False)
+            or getattr(request.user, 'is_coordinator', False)
+            or request.user.is_staff
+            or request.user.is_superuser
+            or getattr(request.user, 'role', '') in ('admin', 'coordinator')
+        )
+        if not is_admin:
+            return redirect('dash')
+    # Anonymous or admin/coordinator → render shell; JS will redirect unauthenticated to /login/
     return render(request, 'myapp/admin.html')
 
 def donate_view(request):

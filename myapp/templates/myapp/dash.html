@@ -510,7 +510,17 @@
 
     function fmtDate(iso) {
       var d = new Date(iso + 'T00:00:00');
-      return { day: d.getDate(), month: d.toLocaleString('en', { month: 'short' }).toUpperCase() };
+      // Tanzania timezone/locale — short month in Swahili, day numeric
+      var tzOpts = { timeZone:'Africa/Dar_es_Salaam' };
+      var month = d.toLocaleString('sw-TZ', { month:'short', timeZone:'Africa/Dar_es_Salaam' }).toUpperCase();
+      // Ensure day reflects Dar es Salaam date
+      var day = Number(d.toLocaleString('sw-TZ', { day:'numeric', timeZone:'Africa/Dar_es_Salaam' }));
+      return { day: day, month: month };
+    }
+    // Helper for full Tanzania dates (e.g. 27 Ago 2026)
+    function fmtDateTZ(iso) {
+      try { return new Date(iso + 'T00:00:00').toLocaleDateString('sw-TZ', { day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Dar_es_Salaam' }); }
+      catch(e){ return iso; }
     }
 
     function getEventById(id) { return EVENTS.find(function(e){ return e.id === id; }); }
@@ -824,7 +834,7 @@
         var realIndex = tracked.indexOf(t);
         var row = document.createElement('div');
         row.className = 'track-row';
-        row.innerHTML = '<img class="track-thumb" src="{% static 'myapp/head logo.png' %}" onerror="this.src=\'head logo.png\'" alt=""><div class="track-info"><h5>' + escapeHtml(ev.title) + '</h5><p><i class="fas fa-location-dot"></i> ' + escapeHtml(ev.location) + ' &nbsp;·&nbsp; ' + new Date(ev.date + 'T00:00:00').toLocaleDateString('en', { day:'numeric', month:'short', year:'numeric' }) + '</p></div><select class="track-status-select" data-i="' + realIndex + '" style="font-family:inherit;font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:6px 10px;border-radius:20px;border:1px solid var(--border2);background:' + (t.status === 'attended' ? 'rgba(74,222,128,0.15)' : 'rgba(91,155,213,0.13)') + ';color:' + (t.status === 'attended' ? '#1d8a4a' : '#2c6aa3') + ';cursor:pointer;"><option value="registered"' + (t.status === 'registered' ? ' selected' : '') + '>Registered</option><option value="attended"' + (t.status === 'attended' ? ' selected' : '') + '>Attended</option></select><button class="track-remove" data-i="' + realIndex + '" title="Remove from tracked events"><i class="fas fa-trash"></i></button>';
+        row.innerHTML = '<img class="track-thumb" src="{% static 'myapp/head logo.png' %}" onerror="this.src=\'head logo.png\'" alt=""><div class="track-info"><h5>' + escapeHtml(ev.title) + '</h5><p><i class="fas fa-location-dot"></i> ' + escapeHtml(ev.location) + ' &nbsp;·&nbsp; ' + new Date(ev.date + 'T00:00:00').toLocaleDateString('sw-TZ', { day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Dar_es_Salaam' }) + '</p></div><select class="track-status-select" data-i="' + realIndex + '" style="font-family:inherit;font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;padding:6px 10px;border-radius:20px;border:1px solid var(--border2);background:' + (t.status === 'attended' ? 'rgba(74,222,128,0.15)' : 'rgba(91,155,213,0.13)') + ';color:' + (t.status === 'attended' ? '#1d8a4a' : '#2c6aa3') + ';cursor:pointer;"><option value="registered"' + (t.status === 'registered' ? ' selected' : '') + '>Registered</option><option value="attended"' + (t.status === 'attended' ? ' selected' : '') + '>Attended</option></select><button class="track-remove" data-i="' + realIndex + '" title="Remove from tracked events"><i class="fas fa-trash"></i></button>';
         list.appendChild(row);
       });
       list.querySelectorAll('.track-status-select').forEach(function(sel) {

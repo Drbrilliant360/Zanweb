@@ -334,7 +334,8 @@ async function apiPut(path, body) {
     stories: `Read inspiring stories from our community on the <a href="${djangoUrls.stories || '/stories/'}" style='color:#F5C300;text-decoration:underline;'>Stories page</a>. ✨`,
   };
 
-  function getBotResponse(msg) {
+  // Offline keyword fallback — used if free online model is unreachable
+  function getLocalBotResponse(msg) {
     const m = msg.toLowerCase();
     if (m.includes('hello') || m.includes('hi') || m.includes('hey')) return BOT_RESPONSES.hello;
     if (m.includes('volunteer')) return BOT_RESPONSES.volunteer;
@@ -346,6 +347,38 @@ async function apiPut(path, body) {
     if (m.includes('register') || m.includes('join') || m.includes('sign up')) return BOT_RESPONSES.register;
     if (m.includes('stories') || m.includes('inspiration')) return BOT_RESPONSES.stories;
     return BOT_RESPONSES.default;
+  }
+
+  // Free online model — Pollinations.ai (no API key, Mistral/Llama) via Django proxy /api/chatbot/
+  // Falls back to getLocalBotResponse if offline
+  async function getBotResponse(msg) {
+    // Show that online model is being consulted — try proxy first
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 11000);
+      const r = await fetch('/api/chatbot/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg }),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.reply) {
+          let html = j.reply.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+          // Preserve any Zanchangemakers links the model may have returned as plain text
+          html = html.replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" style="color:#F5C300;text-decoration:underline;">${u}</a>`);
+          if (j.source) {
+            html += `<div style="font-size:0.68rem;color:#8A9ABE;margin-top:6px;border-top:1px dashed #EEF2F9;padding-top:4px;"><i class="fa-solid fa-robot" style="margin-right:4px;"></i>via ${esc(j.source)} • ${esc(j.model||'free')}</div>`;
+          }
+          return html;
+        }
+      }
+    } catch (e) {
+      console.warn('Chatbot online model unreachable, using local fallback', e);
+    }
+    return getLocalBotResponse(msg);
   }
 
   function buildChatbot() {
@@ -399,22 +432,37 @@ async function apiPut(path, body) {
   }
 
   /* ── GLOBAL FUNCTIONS (called from inline HTML) ── */
-  window.zcmSendMsg = function () {
+  function showTyping() {
+    const messages = document.getElementById('zcmMessages');
+    const el = document.createElement('div');
+    el.className = 'chat-bubble bot typing';
+    el.id = 'zcmTyping';
+    el.innerHTML = '<span style="display:inline-flex;gap:4px;align-items:center;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:0.75rem;"></i> thinking… <span style="font-size:0.68rem;color:#8A9ABE;">(free AI)</span></span>';
+    messages.appendChild(el);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  function hideTyping() {
+    const t = document.getElementById('zcmTyping');
+    if (t) t.remove();
+  }
+  window.zcmSendMsg = async function () {
     const input = document.getElementById('zcmChatInput');
     const msg = input.value.trim();
     if (!msg) return;
     addChatBubble(msg, 'user');
     input.value = '';
-    setTimeout(function () {
-      addChatBubble(getBotResponse(msg), 'bot');
-    }, 600);
+    showTyping();
+    const reply = await getBotResponse(msg);
+    hideTyping();
+    addChatBubble(reply, 'bot');
   };
 
-  window.zcmQuickMsg = function (msg) {
+  window.zcmQuickMsg = async function (msg) {
     addChatBubble(msg, 'user');
-    setTimeout(function () {
-      addChatBubble(getBotResponse(msg), 'bot');
-    }, 600);
+    showTyping();
+    const reply = await getBotResponse(msg);
+    hideTyping();
+    addChatBubble(reply, 'bot');
   };
 
   window.zcmSubscribe = async function () {
@@ -453,6 +501,8 @@ async function apiPut(path, body) {
 
   /* ── INIT ── */
   function init() {
+    // Don't inject global nav/footer/chatbot inside admin control center — it has its own shell
+    if (window.location.pathname.startsWith('/admin-workspace') || document.querySelector('.app-shell')) return;
     buildNav();
     buildFooter();
     buildChatbot();
@@ -467,6 +517,7 @@ async function apiPut(path, body) {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.startsWith('/admin-workspace') || document.querySelector('.app-shell')) return;
   const targets = document.querySelectorAll('section, .card, .gallery-item, .hero, .container img');
   targets.forEach(el => el.classList.add('motion-reveal'));
   

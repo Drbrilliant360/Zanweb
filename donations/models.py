@@ -10,7 +10,7 @@ class DonationCampaign(models.Model):
     description = models.TextField()
     goal_amount = models.DecimalField(max_digits=12, decimal_places=2)
     raised_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default='TZS')
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(default=True)

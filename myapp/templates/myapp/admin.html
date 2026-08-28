@@ -422,7 +422,7 @@ button { font-family: inherit; cursor: pointer; }
                     </div>
                     <div class="metric-card">
                         <div class="metric-icon" style="background:var(--green-bg); color:var(--green);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                        <div class="metric-info"><h3 id="mDonationTotal">$0</h3><p>Donations Raised</p></div>
+                        <div class="metric-info"><h3 id="mDonationTotal">TZS 0</h3><p>Donations Raised</p></div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-icon" style="background:var(--red-bg); color:var(--crimson);"><i class="fa-solid fa-envelope"></i></div>
@@ -730,8 +730,8 @@ button { font-family: inherit; cursor: pointer; }
             <!-- ================= DONATIONS ================= -->
             <section class="page" id="page-donations">
                 <div class="split-3" style="margin-bottom:22px;">
-                    <div class="metric-card"><div class="metric-icon" style="background:var(--green-bg);color:var(--green);"><i class="fa-solid fa-coins"></i></div><div class="metric-info"><h3 id="donTotalAll">$0</h3><p>Total Raised</p></div></div>
-                    <div class="metric-card"><div class="metric-icon" style="background:var(--bg-tint);color:var(--navy);"><i class="fa-solid fa-calendar-check"></i></div><div class="metric-info"><h3 id="donTotalMonth">$0</h3><p>This Month</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--green-bg);color:var(--green);"><i class="fa-solid fa-coins"></i></div><div class="metric-info"><h3 id="donTotalAll">TZS 0</h3><p>Total Raised</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--bg-tint);color:var(--navy);"><i class="fa-solid fa-calendar-check"></i></div><div class="metric-info"><h3 id="donTotalMonth">TZS 0</h3><p>This Month</p></div></div>
                     <div class="metric-card"><div class="metric-icon" style="background:var(--amber-bg);color:var(--amber);"><i class="fa-solid fa-clock"></i></div><div class="metric-info"><h3 id="donPendingCount">0</h3><p>Pending Verification</p></div></div>
                 </div>
                 <div class="section-block">
@@ -990,52 +990,151 @@ button { font-family: inherit; cursor: pointer; }
         catch (e) { toast("Could not save locally — storage may be full.", true); }
     }
 
+    // Tanzania CRUD — maps admin list keys to real Django API endpoints (null = localStorage only)
+    const apiMap = {
+        partners: '/partners/',
+        programs: '/programs/',
+        gallery: '/gallery/',
+        stories: '/stories/',
+        counters: '/org-stats/',
+        stats: '/org-stats/',
+        donations: '/donations/',
+        applicants: '/applications/',
+        messages: '/contact-messages/',
+        users: '/volunteers/',
+        admins: '/volunteers/',
+        // local-only (no backend model yet): priorities, pillars, profiles, quicklinks, mobilemoney
+        priorities: null, pillars: null, profiles: null, quicklinks: null, mobilemoney: null
+    };
+    function toApiPayload(listKey, record) {
+        // Translate admin form fields to DRF serializer fields per model
+        if (listKey === 'partners') return { name: record.name, description: record.name };
+        if (listKey === 'programs') return { name: record.title, short_description: record.desc||'', description: record.desc||'', category: 'leadership_volunteerism' };
+        if (listKey === 'gallery') return { title: record.caption||'Gallery image', caption: record.caption||'', category: 'yvf' };
+        if (listKey === 'stories') return { title: record.title, excerpt: record.desc||'', content: record.desc||'' };
+        if (listKey === 'counters' || listKey === 'stats') return { label: record.label||record.desc||record.title||'', value: record.value||record.year||'', icon: '' };
+        return record;
+    }
+    function fromApiRecord(listKey, apiRec) {
+        if (listKey === 'partners') return { id: apiRec.id, name: apiRec.name };
+        if (listKey === 'programs') return { id: apiRec.id, title: apiRec.name, tag: apiRec.category||'', desc: apiRec.description||apiRec.short_description||'', bullets: '', ctaText: '', ctaLink: '' };
+        if (listKey === 'gallery') return { id: apiRec.id, caption: apiRec.caption||apiRec.title||'' };
+        if (listKey === 'stories') return { id: apiRec.id, title: apiRec.title, tag: '', desc: apiRec.excerpt||apiRec.content||'' };
+        if (listKey === 'counters' || listKey === 'stats') return { id: apiRec.id, label: apiRec.label, value: apiRec.value, desc: apiRec.label };
+        return apiRec;
+    }
+
     /* ---------- Load data from API ---------- */
     async function loadAdminFromAPI() {
         try {
             if (typeof apiGet === 'undefined') return;
-            var dash = await apiGet('/api/dashboard/admin/');
+            var dash = await apiGet('/dashboard/admin/');
             if (dash) {
-                document.getElementById('mAppTotal').textContent = dash.total_volunteers || '0';
-                document.getElementById('mAppPending').textContent = dash.active_programs || '0';
-                if (dash.grants_awarded) {
-                    document.getElementById('mDonationTotal').textContent = '$' + Number(dash.grants_awarded).toLocaleString();
+                document.getElementById('mAppTotal').textContent = dash.total_volunteers != null ? dash.total_volunteers : '0';
+                document.getElementById('mAppPending').textContent = dash.active_programs != null ? dash.active_programs : '0';
+                if (dash.grants_awarded != null) {
+                    document.getElementById('mDonationTotal').textContent = formatTZS(dash.grants_awarded);
                 }
             }
-            var msgs = await apiGet('/api/contact-messages/list/');
+            var msgs = await apiGet('/contact-messages/');
             if (msgs) {
                 var list = msgs.results || msgs;
-                if (list.length) {
+                if (Array.isArray(list) && list.length) {
                     data.messages = list.map(function(m, i) {
-                        return { id: i + 1, name: m.name || 'Unknown', email: m.email || '', subject: m.subject || 'No Subject', message: m.message || '', date: m.created_at ? m.created_at.slice(0, 10) : '', read: false };
+                        return { id: m.id || i + 1, name: m.name || 'Unknown', email: m.email || '', subject: m.subject || 'No Subject', message: m.message || '', date: m.created_at ? m.created_at.slice(0, 10) : new Date().toISOString().slice(0,10), read: !!m.is_read };
                     });
                 }
             }
-            var dons = await apiGet('/api/donations/');
+            var dons = await apiGet('/donations/');
             if (dons) {
                 var dlist = dons.results || dons;
-                if (dlist.length) {
+                if (Array.isArray(dlist) && dlist.length) {
                     data.donations = dlist.map(function(d, i) {
-                        return { id: i + 1, donor: d.full_name || d.donor_name || 'Anonymous', amount: parseFloat(d.amount) || 0, method: d.payment_method || 'Mobile Money', date: d.created_at ? d.created_at.slice(0, 10) : '', status: d.status || 'pending' };
+                        var methodLabel = d.method === 'mobile_money' ? 'Mobile Money' : (d.method === 'bank_transfer' ? 'Bank Transfer' : (d.method || 'Mobile Money'));
+                        var st = d.status === 'completed' ? 'verified' : (d.status || 'pending');
+                        return { id: d.id || i + 1, donor: d.donor_name || d.donor_email || 'Anonymous', amount: parseFloat(d.amount) || 0, method: methodLabel, date: d.created_at ? d.created_at.slice(0, 10) : new Date().toISOString().slice(0,10), status: st };
                     });
                 }
             }
-            var apps = await apiGet('/api/applications/');
+            var apps = await apiGet('/applications/');
             if (apps) {
                 var alist = apps.results || apps;
-                if (alist.length) {
+                if (Array.isArray(alist) && alist.length) {
                     data.applicants = alist.map(function(a, i) {
-                        var progName = a.program ? (a.program.name || a.program.title || String(a.program)) : 'N/A';
-                        return { id: i + 1, name: (a.first_name || '') + ' ' + (a.last_name || ''), email: a.email || '', phone: a.phone || '', program: progName, date: a.created_at ? a.created_at.slice(0, 10) : '', status: a.status || 'pending' };
+                        var progName = 'N/A';
+                        if (a.program_name) progName = a.program_name;
+                        else if (a.program && typeof a.program === 'object' && a.program.name) progName = a.program.name;
+                        else if (a.request_type) progName = a.request_type;
+                        return { id: a.id || i + 1, name: a.full_name || ((a.first_name||'')+' '+(a.last_name||'')).trim() || 'Unknown', email: a.email || '', phone: a.phone_number || a.phone || '', program: progName, date: a.created_at ? a.created_at.slice(0, 10) : new Date().toISOString().slice(0,10), status: a.status || 'pending' };
                     });
                 }
             }
+            // CMS collections — try real API, fall back to localStorage defaults
+            var cmsKeys = ['partners','programs','gallery','stories','counters'];
+            for (var ci=0; ci<cmsKeys.length; ci++) {
+                var ck = cmsKeys[ci]; var ep = apiMap[ck];
+                if (!ep) continue;
+                try {
+                    var cmsResp = await apiGet(ep);
+                    if (cmsResp) {
+                        var cmsList = cmsResp.results || cmsResp;
+                        if (Array.isArray(cmsList)) {
+                            // keep defaults if API returns empty (so demo data still visible)
+                            if (cmsList.length) data[ck] = cmsList.map(function(r){ return fromApiRecord(ck, r); });
+                        }
+                    }
+                } catch(e){ /* keep local */ }
+            }
+            // Users & Admins — load from /volunteers/ (real User model)
+            try {
+                var volsResp = await apiGet('/volunteers/');
+                if (volsResp) {
+                    var vlist = volsResp.results || volsResp;
+                    if (Array.isArray(vlist) && vlist.length) {
+                        // Map to data.users (active/suspended) and data.admins
+                        var mappedUsers = [];
+                        var mappedAdmins = [];
+                        vlist.forEach(function(u, i){
+                            var local = {
+                                _apiId: u.id,
+                                id: i+1,
+                                name: (u.first_name||'')+' '+(u.last_name||'') || u.full_name || u.email,
+                                email: u.email,
+                                joined: u.created_at ? u.created_at.slice(0,10) : (u.date_joined ? u.date_joined.slice(0,10) : ''),
+                                role: u.role||'volunteer',
+                                status: u.is_active ? 'active' : 'suspended'
+                            };
+                            // keep trimmed name
+                            local.name = local.name.trim() || u.email;
+                            if (u.role === 'admin' || u.role === 'coordinator') mappedAdmins.push({ _apiId: u.id, id: mappedAdmins.length+1, name: local.name, email: u.email, role: u.role === 'admin' ? 'Super Admin' : 'Program Lead' });
+                            // push all to users list for demo, but exclude superusers from volunteer list if needed
+                            mappedUsers.push(local);
+                        });
+                        if (mappedUsers.length) data.users = mappedUsers;
+                        if (mappedAdmins.length) data.admins = mappedAdmins;
+                    }
+                }
+            } catch(e){ /* keep defaults */ }
             persist();
-        } catch(e) { /* keep localStorage fallback */ }
+        } catch(e) { console.warn('loadAdminFromAPI fallback', e); }
     }
     function nextId(arr) { return arr.length ? Math.max(...arr.map(i => i.id)) + 1 : 1; }
     function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-    function fmtDate(d) { try { return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return d; } }
+    // Tanzania locale helpers — currency TZS and dates in Africa/Dar_es_Salaam
+    function formatTZS(amount) {
+        try { return new Intl.NumberFormat('sw-TZ', { style:'currency', currency:'TZS', maximumFractionDigits:0 }).format(Number(amount)||0); }
+        catch(e) { return 'TZS ' + Number(amount||0).toLocaleString('sw-TZ'); }
+    }
+    function fmtDate(d) {
+        try {
+            // Swahili locale, Dar es Salaam timezone — e.g. 27 Ago 2026
+            return new Date(d).toLocaleDateString('sw-TZ', { day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Dar_es_Salaam' });
+        } catch (e) { return d; }
+    }
+    function fmtDateTZ(iso) {
+        try { return new Date(iso + 'T00:00:00').toLocaleDateString('sw-TZ', { day:'numeric', month:'short', year:'numeric', timeZone:'Africa/Dar_es_Salaam' }); }
+        catch(e){ return iso; }
+    }
     function initials(name) { return (name || "?").split(" ").filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join(""); }
     function palette(i) { const p = ["#1C2E5E", "#A51C30", "#F5C300", "#16A34A", "#0EA5E9", "#8A9ABE"]; return p[i % p.length]; }
 
@@ -1052,15 +1151,18 @@ button { font-family: inherit; cursor: pointer; }
 
     /* ---------------- Confirm modal ---------------- */
     const confirmBackdrop = document.getElementById("confirmModalBackdrop");
+    let pendingConfirmAction = null;
     function confirmAction(text, onYes) {
         document.getElementById("confirmModalText").textContent = text;
+        pendingConfirmAction = onYes;
         confirmBackdrop.classList.add("open");
-        const yesBtn = document.getElementById("confirmModalYes");
-        const handler = () => { onYes(); closeConfirmModal(); yesBtn.removeEventListener("click", handler); };
-        yesBtn.replaceWith(yesBtn.cloneNode(true));
-        document.getElementById("confirmModalYes").addEventListener("click", handler);
     }
-    function closeConfirmModal() { confirmBackdrop.classList.remove("open"); }
+    function closeConfirmModal() { pendingConfirmAction = null; confirmBackdrop.classList.remove("open"); }
+    document.getElementById("confirmModalYes").addEventListener("click", () => {
+        const fn = pendingConfirmAction;
+        pendingConfirmAction = null;
+        if (typeof fn === 'function') { fn(); closeConfirmModal(); }
+    });
     window.confirmAction = confirmAction;
     window.closeConfirmModal = closeConfirmModal;
 
@@ -1094,7 +1196,8 @@ button { font-family: inherit; cursor: pointer; }
         document.getElementById("pageSubtitle").textContent = meta[1];
         document.getElementById("sidebar").classList.remove("open");
         document.getElementById("sidebarOverlay").classList.remove("open");
-        window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+        window.scrollTo({ top: 0, behavior: "auto" });
+        try { history.replaceState(null, "", "#" + key); } catch(e) {}
     }
     document.querySelectorAll("[data-page]").forEach(el => el.addEventListener("click", () => goToPage(el.dataset.page)));
 
@@ -1203,21 +1306,62 @@ button { font-family: inherit; cursor: pointer; }
         formModalBackdrop.classList.add("open");
     }
     function closeFormModal() { formModalBackdrop.classList.remove("open"); }
-    function submitFormModal() {
+    async function submitFormModal() {
         const { listKey, editId } = modalCtx;
         const cfg = listConfigs[listKey];
         const record = {};
         let valid = true;
+        let fileEl = null;
         cfg.fields.forEach(f => {
-            if (f.type === "file") return;
             const el = document.getElementById("f-" + f.k);
+            if (f.type === "file") { fileEl = el; return; }
             record[f.k] = el.value.trim();
             if (!record[f.k] && f.full) valid = false;
         });
         if (!valid) { toast("Please fill in the required fields.", true); return; }
+        const endpoint = apiMap[listKey];
+        // Try real API if available (requires auth token), otherwise localStorage fallback
+        if (endpoint && typeof apiPost !== 'undefined' && typeof apiPatch !== 'undefined') {
+            try {
+                const payload = toApiPayload(listKey, record);
+                let resp = null;
+                if (editId) {
+                    // Need to find the real API id (may differ from local sequential id)
+                    const existing = data[listKey].find(i => i.id === editId);
+                    const apiId = existing && existing._apiId ? existing._apiId : editId;
+                    resp = await apiPatch(endpoint + apiId + '/', payload);
+                } else {
+                    resp = await apiPost(endpoint, payload);
+                }
+                if (resp && resp.ok && resp.data) {
+                    const saved = fromApiRecord(listKey, resp.data);
+                    saved._apiId = resp.data.id;
+                    if (editId) {
+                        const idx = data[listKey].findIndex(i => i.id === editId);
+                        if (idx !== -1) data[listKey][idx] = Object.assign({}, data[listKey][idx], saved, { id: editId });
+                    } else {
+                        saved.id = nextId(data[listKey]);
+                        saved._apiId = resp.data.id;
+                        data[listKey].push(saved);
+                    }
+                    persist();
+                    closeFormModal();
+                    renderAll();
+                    toast(editId ? "Item updated (saved to server)." : "Item added (saved to server).");
+                    return;
+                } else if (resp && !resp.ok) {
+                    const msg = (resp.data && (resp.data.detail || JSON.stringify(resp.data))) || 'Server error';
+                    toast('Server: ' + msg, true);
+                    // fall through to local save so UI still responds
+                }
+            } catch(apiErr) {
+                console.warn('API save failed, using local fallback', apiErr);
+            }
+        }
+        // Local fallback (offline / no endpoint)
         if (editId) {
             const idx = data[listKey].findIndex(i => i.id === editId);
-            data[listKey][idx] = Object.assign({}, data[listKey][idx], record);
+            if (idx !== -1) data[listKey][idx] = Object.assign({}, data[listKey][idx], record);
         } else {
             record.id = nextId(data[listKey]);
             data[listKey].push(record);
@@ -1225,14 +1369,23 @@ button { font-family: inherit; cursor: pointer; }
         persist();
         closeFormModal();
         renderAll();
-        toast(editId ? "Item updated." : "Item added.");
+        toast(editId ? "Item updated (local)." : "Item added (local).");
     }
     window.openListModal = openListModal;
     window.closeFormModal = closeFormModal;
     window.submitFormModal = submitFormModal;
 
-    function deleteListItem(listKey, id) {
-        confirmAction("Remove this item from the site?", () => {
+    async function deleteListItem(listKey, id) {
+        confirmAction("Remove this item from the site?", async () => {
+            const endpoint = apiMap[listKey];
+            const item = data[listKey].find(i => i.id === id);
+            const apiId = item && item._apiId ? item._apiId : id;
+            if (endpoint && typeof apiDelete !== 'undefined' && item) {
+                try {
+                    const delResp = await apiDelete(endpoint + apiId + '/');
+                    // 204 or 200 both ok; if 404 fall back to local delete
+                } catch(e){ console.warn('API delete failed', e); }
+            }
             data[listKey] = data[listKey].filter(i => i.id !== id);
             persist();
             renderAll();
@@ -1437,9 +1590,25 @@ button { font-family: inherit; cursor: pointer; }
             </tr>`;
         });
     }
-    window.setApplicantStatus = function (id, status) {
+    window.setApplicantStatus = async function (id, status) {
         const item = data.applicants.find(a => a.id === id);
-        if (item) { item.status = status; persist(); renderAll(); toast("Applicant marked as " + status + "."); }
+        if (!item) return;
+        // Try real API: POST /api/applications/{id}/review/ with decision
+        const apiId = item._apiId || id;
+        const decision = status === 'approved' ? 'approved' : 'rejected';
+        if (typeof apiPost !== 'undefined') {
+            try {
+                const resp = await apiPost('/applications/' + apiId + '/review/', { decision: decision });
+                if (resp && resp.ok) {
+                    item.status = decision;
+                    persist(); renderAll(); toast("Applicant marked as " + decision + " (server).");
+                    return;
+                } else if (resp && resp.data) {
+                    toast('Server: ' + (resp.data.detail || JSON.stringify(resp.data)), true);
+                }
+            } catch(e){ console.warn('Applicant review API failed', e); }
+        }
+        item.status = status; persist(); renderAll(); toast("Applicant marked as " + status + " (local).");
     };
     document.getElementById("applicantFilterTabs").addEventListener("click", e => {
         const btn = e.target.closest(".filter-tab");
@@ -1471,9 +1640,19 @@ button { font-family: inherit; cursor: pointer; }
             </tr>`;
         });
     }
-    window.toggleUserStatus = function (id) {
+    window.toggleUserStatus = async function (id) {
         const u = data.users.find(x => x.id === id);
-        if (u) { u.status = u.status === "active" ? "suspended" : "active"; persist(); renderAll(); toast("User status updated."); }
+        if (!u) return;
+        const newStatus = u.status === "active" ? "suspended" : "active";
+        const apiId = u._apiId || id;
+        // Try PATCH /api/volunteers/{id}/ with is_active
+        if (typeof apiPatch !== 'undefined') {
+            try {
+                const resp = await apiPatch('/volunteers/' + apiId + '/', { is_active: newStatus === 'active' });
+                if (resp && resp.ok) { u.status = newStatus; persist(); renderAll(); toast("User status updated (server)."); return; }
+            } catch(e){ console.warn('User status API failed', e); }
+        }
+        u.status = newStatus; persist(); renderAll(); toast("User status updated (local).");
     };
     document.getElementById("userSearch").addEventListener("input", renderUsers);
 
@@ -1499,11 +1678,16 @@ button { font-family: inherit; cursor: pointer; }
         });
     }
     const msgBackdrop = document.getElementById("msgModalBackdrop");
-    function openMsgModal(id) {
+    async function openMsgModal(id) {
         const m = data.messages.find(x => x.id === id);
         if (!m) return;
         activeMsgId = id;
         m.read = true; persist();
+        // Try mark read on server
+        const apiId = m._apiId || id;
+        if (typeof apiPost !== 'undefined') {
+            try { await apiPost('/contact-messages/' + apiId + '/mark_read/', {}); } catch(e){ /* ignore */ }
+        }
         document.getElementById("msgModalSubject").textContent = m.subject;
         document.getElementById("msgModalMeta").textContent = `${m.name} · ${m.email} · ${fmtDate(m.date)}`;
         document.getElementById("msgModalBody").textContent = m.message;
@@ -1513,7 +1697,12 @@ button { font-family: inherit; cursor: pointer; }
     }
     function closeMsgModal() { msgBackdrop.classList.remove("open"); }
     document.getElementById("msgModalDelete").addEventListener("click", () => {
-        confirmAction("Delete this message permanently?", () => {
+        confirmAction("Delete this message permanently?", async () => {
+            const m = data.messages.find(x => x.id === activeMsgId);
+            const apiId = m && m._apiId ? m._apiId : activeMsgId;
+            if (typeof apiDelete !== 'undefined' && m) {
+                try { await apiDelete('/contact-messages/' + apiId + '/'); } catch(e){ console.warn('Delete message API failed', e); }
+            }
             data.messages = data.messages.filter(m => m.id !== activeMsgId);
             persist(); closeMsgModal(); renderAll(); toast("Message deleted.");
         });
@@ -1529,7 +1718,7 @@ button { font-family: inherit; cursor: pointer; }
         rows.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(d => {
             el.innerHTML += `<tr>
                 <td class="cell-name"><strong>${esc(d.donor)}</strong></td>
-                <td>$${Number(d.amount).toLocaleString()}</td>
+                <td>${formatTZS(d.amount)}</td>
                 <td>${esc(d.method)}</td>
                 <td>${fmtDate(d.date)}</td>
                 <td><span class="pill ${d.status === "verified" ? "verified" : "pending"}">${esc(d.status)}</span></td>
@@ -1539,14 +1728,22 @@ button { font-family: inherit; cursor: pointer; }
                 </div></td>
             </tr>`;
         });
-        document.getElementById("donTotalAll").textContent = "$" + data.donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        document.getElementById("donTotalAll").textContent = formatTZS(data.donations.reduce((s, d) => s + Number(d.amount), 0));
         const thisMonth = new Date().getMonth();
-        document.getElementById("donTotalMonth").textContent = "$" + data.donations.filter(d => new Date(d.date).getMonth() === thisMonth).reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        document.getElementById("donTotalMonth").textContent = formatTZS(data.donations.filter(d => new Date(d.date).getMonth() === thisMonth).reduce((s, d) => s + Number(d.amount), 0));
         document.getElementById("donPendingCount").textContent = data.donations.filter(d => d.status === "pending").length;
     }
-    window.verifyDonation = function (id) {
+    window.verifyDonation = async function (id) {
         const d = data.donations.find(x => x.id === id);
-        if (d) { d.status = "verified"; persist(); renderAll(); toast("Donation marked as verified."); }
+        if (!d) return;
+        const apiId = d._apiId || id;
+        if (typeof apiPost !== 'undefined') {
+            try {
+                const resp = await apiPost('/donations/' + apiId + '/confirm/', { transaction_reference: d.transaction_reference || ('MANUAL-' + Date.now()) });
+                if (resp && resp.ok) { d.status = "verified"; persist(); renderAll(); toast("Donation marked as verified (server)."); return; }
+            } catch(e){ console.warn('Verify donation API failed', e); }
+        }
+        d.status = "verified"; persist(); renderAll(); toast("Donation marked as verified (local).");
     };
     document.getElementById("donationSearch").addEventListener("input", renderDonations);
 
@@ -1555,7 +1752,7 @@ button { font-family: inherit; cursor: pointer; }
     function renderOverview() {
         document.getElementById("mAppTotal").textContent = data.applicants.length;
         document.getElementById("mAppPending").textContent = data.applicants.filter(a => a.status === "pending").length;
-        document.getElementById("mDonationTotal").textContent = "$" + data.donations.reduce((s, d) => s + Number(d.amount), 0).toLocaleString();
+        document.getElementById("mDonationTotal").textContent = formatTZS(data.donations.reduce((s, d) => s + Number(d.amount), 0));
         document.getElementById("mMsgUnread").textContent = data.messages.filter(m => !m.read).length;
         document.getElementById("qaPendingCount").textContent = data.applicants.filter(a => a.status === "pending").length + " awaiting decision";
         document.getElementById("qaUnreadCount").textContent = data.messages.filter(m => !m.read).length + " unread";
@@ -1572,7 +1769,7 @@ button { font-family: inherit; cursor: pointer; }
         const feed = [
             ...data.applicants.map(a => ({ date: a.date, icon: "fa-clipboard-user", color: "var(--navy)", text: `${a.name} applied to ${a.program}` })),
             ...data.messages.map(m => ({ date: m.date, icon: "fa-envelope", color: "var(--crimson)", text: `${m.name} sent a message: "${m.subject}"` })),
-            ...data.donations.map(d => ({ date: d.date, icon: "fa-hand-holding-dollar", color: "var(--green)", text: `${d.donor} contributed $${Number(d.amount).toLocaleString()} via ${d.method}` }))
+            ...data.donations.map(d => ({ date: d.date, icon: "fa-hand-holding-dollar", color: "var(--green)", text: `${d.donor} contributed ${formatTZS(d.amount)} via ${d.method}` }))
         ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
         const feedEl = document.getElementById("activityFeed");
         feedEl.innerHTML = feed.map(f => `
@@ -1581,35 +1778,46 @@ button { font-family: inherit; cursor: pointer; }
                 <div class="activity-text"><p>${esc(f.text)}</p><time>${fmtDate(f.date)}</time></div>
             </div>`).join("") || emptyState("fa-clock", "No recent activity", "New applicants, messages and donations will show up here.");
 
-        // Charts
-        const monthLabels = [];
-        const monthCounts = [];
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(); d.setMonth(d.getMonth() - i);
-            const label = d.toLocaleString(undefined, { month: "short" });
-            monthLabels.push(label);
-            monthCounts.push(data.applicants.filter(a => {
-                const ad = new Date(a.date);
-                return ad.getMonth() === d.getMonth() && ad.getFullYear() === d.getFullYear();
-            }).length);
-        }
-        const ctxApps = document.getElementById("chartApplications").getContext("2d");
-        if (chartApps) chartApps.destroy();
-        chartApps = new Chart(ctxApps, {
-            type: "line",
-            data: { labels: monthLabels, datasets: [{ data: monthCounts, borderColor: "#1C2E5E", backgroundColor: "rgba(28,46,94,0.08)", fill: true, tension: 0.35, pointBackgroundColor: "#1C2E5E" }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: "#f1f5f9" } }, x: { grid: { display: false } } } }
-        });
+        // Charts — guarded for missing Chart.js or missing canvas (prevents white-screen)
+        try {
+            if (typeof Chart === 'undefined') throw new Error('Chart.js not loaded');
+            const monthLabels = [];
+            const monthCounts = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(); d.setMonth(d.getMonth() - i);
+                const label = d.toLocaleString('sw-TZ', { month: "short", timeZone:'Africa/Dar_es_Salaam' });
+                monthLabels.push(label);
+                monthCounts.push(data.applicants.filter(a => {
+                    const ad = new Date(a.date);
+                    return ad.getMonth() === d.getMonth() && ad.getFullYear() === d.getFullYear();
+                }).length);
+            }
+            const canvasApps = document.getElementById("chartApplications");
+            if (canvasApps) {
+                const ctxApps = canvasApps.getContext("2d");
+                if (chartApps) chartApps.destroy();
+                chartApps = new Chart(ctxApps, {
+                    type: "line",
+                    data: { labels: monthLabels, datasets: [{ data: monthCounts, borderColor: "#1C2E5E", backgroundColor: "rgba(28,46,94,0.08)", fill: true, tension: 0.35, pointBackgroundColor: "#1C2E5E" }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: "#f1f5f9" } }, x: { grid: { display: false } } } }
+                });
+            }
 
-        const methodTotals = {};
-        data.donations.forEach(d => { methodTotals[d.method] = (methodTotals[d.method] || 0) + Number(d.amount); });
-        const ctxDons = document.getElementById("chartDonations").getContext("2d");
-        if (chartDons) chartDons.destroy();
-        chartDons = new Chart(ctxDons, {
-            type: "doughnut",
-            data: { labels: Object.keys(methodTotals), datasets: [{ data: Object.values(methodTotals), backgroundColor: ["#1C2E5E", "#A51C30", "#F5C300", "#16A34A"] }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } } }
-        });
+            const methodTotals = {};
+            data.donations.forEach(d => { methodTotals[d.method] = (methodTotals[d.method] || 0) + Number(d.amount); });
+            const canvasDons = document.getElementById("chartDonations");
+            if (canvasDons) {
+                const ctxDons = canvasDons.getContext("2d");
+                if (chartDons) chartDons.destroy();
+                chartDons = new Chart(ctxDons, {
+                    type: "doughnut",
+                    data: { labels: Object.keys(methodTotals), datasets: [{ data: Object.values(methodTotals), backgroundColor: ["#1C2E5E", "#A51C30", "#F5C300", "#16A34A"] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } } }
+                });
+            }
+        } catch (chartErr) {
+            console.warn('Charts unavailable', chartErr);
+        }
     }
 
     /* ---------------- Master render / init ---------------- */
