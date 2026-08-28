@@ -25,6 +25,7 @@ urlpatterns = [
     
     # 🟢 Set to /volunteer/ and linked cleanly to volunteer_view
     path('volunteer/', views.volunteer_view, name='volunteer'),              # http://127.0.0.1:8000/volunteer/
+    path('events/', views.events_view, name='events'),                      # http://127.0.0.1:8000/events/
 
     path('logout/', views.logout_view, name='logout'),
     path('application-success/', views.application_success, name='application_success'),

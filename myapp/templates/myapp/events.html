@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events — Zanchangemakers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+<link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1C2E5E;--navy-deep:#0F1A36;--crimson:#A51C30;--gold:#F5C300;--ink:#0D1525;--ink2:#4A5879;--ink3:#8A9ABE;--bg:#fff;--bg2:#F5F7FC;--bg3:#EBF0FA;--border:rgba(28,46,94,.10);--r:14px;--sh:0 8px 32px rgba(28,46,94,.10);--sh-lg:0 16px 48px rgba(28,46,94,.14)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;padding:64px 20px 56px}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 18%,rgba(245,195,0,.13),transparent 55%)}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;text-align:center}
+.eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.28em;color:var(--gold);text-transform:uppercase}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:900;line-height:.95;margin:10px 0}
+.hero p{color:rgba(255,255,255,.78);max-width:680px;margin:10px auto 0}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:28px auto 0;max-width:900px}
+.search{flex:1;min-width:240px;max-width:420px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:10px 16px;backdrop-filter:blur(6px)}
+.search input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:.9rem}
+.search input::placeholder{color:rgba(255,255,255,.55)}
+.search i{color:rgba(255,255,255,.7)}
+.filter-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.pill{padding:8px 14px;border-radius:99px;font-size:.78rem;font-weight:700;border:1px solid rgba(28,46,94,.12);background:rgba(255,255,255,.9);color:var(--navy);cursor:pointer}
+.pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin:36px auto;max-width:1200px;padding:0 20px}
+@media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid rgba(15,26,54,.06);border-radius:16px;overflow:hidden;box-shadow:var(--sh);display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.thumb{height:170px;background:var(--bg2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .placeholder{font-size:2rem;color:var(--ink3)}
+.badge{position:absolute;top:12px;left:12px;background:var(--crimson);color:#fff;font-size:.66rem;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:.4px}
+.badge.open{background:var(--navy)}
+.badge.full{background:#6B7280}
+.date-chip{position:absolute;top:12px;right:12px;background:#fff;border-radius:10px;padding:6px 10px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.12);line-height:1}
+.date-chip b{font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;color:var(--crimson);display:block;line-height:1}
+.date-chip span{font-size:.62rem;font-weight:800;color:var(--navy);letter-spacing:.6px}
+.body{padding:18px 18px 16px;display:flex;flex-direction:column;flex:1}
+.body h3{font-size:1.05rem;font-weight:800;color:var(--navy-deep);margin-bottom:6px;line-height:1.3}
+.meta{font-size:.78rem;color:var(--ink2);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.meta i{color:var(--crimson)}
+.desc{font-size:.86rem;color:var(--ink2);flex:1;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{font-size:.72rem;font-weight:700;padding:6px 10px;border-radius:99px;background:var(--bg2);border:1px solid rgba(28,46,94,.06);color:var(--navy)}
+.stat.warn{background:#FEF3C7;border-color:#FDE68A;color:#92400E}
+.actions{display:flex;gap:8px}
+.btn{flex:1;display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-weight:800;font-size:.82rem;cursor:pointer;border:none;text-decoration:none}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy-deep)}
+.btn-outline{background:#fff;border:1.5px solid rgba(28,46,94,.14);color:var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.empty{grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--ink3)}
+.empty i{font-size:2rem;margin-bottom:10px;color:var(--border)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--navy-deep);color:#fff;padding:12px 16px;border-radius:8px;font-size:.85rem;font-weight:600;box-shadow:var(--sh-lg);z-index:9999}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Community • Learning • Action</div>
+    <h1>Upcoming Events</h1>
+    <p>Discover volunteer opportunities, trainings and community outreach across Zanzibar & Tanzania — dates in <strong>Africa/Dar_es_Salaam</strong>, displayed in Swahili locale.</p>
+    <div class="toolbar">
+      <label class="search" aria-label="Search events"><i class="fa-solid fa-magnifying-glass"></i><input id="q" type="text" placeholder="Search by title or location…"></label>
+    </div>
+    <div class="filter-pills" id="filters">
+      <button class="pill active" data-f="all">All</button>
+      <button class="pill" data-f="open">Open for registration</button>
+      <button class="pill" data-f="full">Fully booked</button>
+      <button class="pill" data-f="upcoming">Upcoming (7 days)</button>
+    </div>
+  </div>
+</section>
+
+<div id="grid" class="grid"><div class="empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Loading events…</p></div></div>
+</main>
+
+<script src="{% static 'myapp/js/shared.js' %}"></script>
+<script id="django-urls-data" type="application/json">{"home": "/", "about": "/about/", "programs": "/programs/", "volunteer": "/volunteer/", "gallery": "/gallery/", "stories": "/stories/", "contact": "/contact/", "register": "/register/", "login": "/login/", "donate": "/donate/", "events": "/events/"}</script>
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const q = document.getElementById('q');
+  let EVENTS = [];
+  let filter = 'all';
+
+  function fmtDateTZ(iso){
+    try{ return new Date(iso+'T00:00:00').toLocaleDateString('sw-TZ',{day:'numeric',month:'short',year:'numeric',timeZone:'Africa/Dar_es_Salaam'});}catch(e){return iso}
+  }
+  function fmtTime(t){ if(!t) return ''; try{return t.slice(0,5);}catch(e){return t} }
+  function isFull(ev){ return ev.capacity!=null && ev.seats_taken!=null && ev.seats_remaining===0; }
+  function isUpcoming(ev){ try{const d=new Date(ev.date); const now=new Date(); const diff=(d - now)/86400000; return diff>=0 && diff<=7;}catch(e){return false}}
+
+  function toast(msg){
+    const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el);
+    setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .25s';setTimeout(()=>el.remove(),300)},2200);
+  }
+
+  async function load(){
+    try{
+      const r=await fetch('/api/events/');
+      const j=await r.json();
+      EVENTS = (j.results||j).filter(ev=> ev.is_published!==false);
+      render();
+    }catch(e){
+      grid.innerHTML='<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load events. Please refresh.</p></div>';
+    }
+  }
+
+  function matches(ev){
+    const term=(q.value||'').toLowerCase();
+    if(term && !(ev.title.toLowerCase().includes(term) || (ev.location||'').toLowerCase().includes(term))) return false;
+    if(filter==='open' && isFull(ev)) return false;
+    if(filter==='full' && !isFull(ev)) return false;
+    if(filter==='upcoming' && !isUpcoming(ev)) return false;
+    return true;
+  }
+
+  function render(){
+    const list=EVENTS.filter(matches).sort((a,b)=> new Date(a.date)-new Date(b.date));
+    if(!list.length){
+      grid.innerHTML='<div class="empty"><i class="fa-solid fa-calendar-xmark"></i><p>No events match your filter.</p><p class="muted" style="font-size:.85rem">Try “All” or clear search.</p></div>';
+      return;
+    }
+    grid.innerHTML=list.map(ev=>{
+      const d=new Date(ev.date+'T00:00:00');
+      const day=d.toLocaleString('sw-TZ',{day:'numeric',timeZone:'Africa/Dar_es_Salaam'});
+      const mon=d.toLocaleString('sw-TZ',{month:'short',timeZone:'Africa/Dar_es_Salaam'}).toUpperCase();
+      const full=isFull(ev);
+      const taken=ev.seats_taken ?? 0;
+      const remain=ev.seats_remaining;
+      const capLabel=ev.capacity==null? 'Open capacity' : (full? 'Fully booked' : (remain+' seats left'));
+      const timeLabel= ev.start_time ? `${fmtTime(ev.start_time)}${ev.end_time?' – '+fmtTime(ev.end_time):''}` : '';
+      const img= ev.image ? `<img src="${ev.image}" alt="" onerror="this.style.display='none'">` : `<div class="placeholder"><i class="fa-solid fa-calendar-star"></i></div>`;
+      const isRegistered = ev.is_registered;
+      return `<article class="card">
+        <div class="thumb">${img}<span class="badge ${full?'full':'open'}">${full?'Fully booked':'Open'}</span><span class="date-chip"><b>${day}</b><span>${mon}</span></span></div>
+        <div class="body">
+          <h3>${ev.title}</h3>
+          <div class="meta"><i class="fa-solid fa-location-dot"></i> ${ev.location||'Zanzibar, Tanzania'} ${timeLabel? '· '+timeLabel: ''}</div>
+          <div class="meta"><i class="fa-solid fa-calendar"></i> ${fmtDateTZ(ev.date)} · ${capLabel} ${ev.capacity? `(${taken}/${ev.capacity})`: ''}</div>
+          <p class="desc">${(ev.description||'').slice(0,180)}</p>
+          <div class="stats"><span class="stat">${ev.is_registered? '<i class=&quot;fa-solid fa-check&quot;></i> Registered' : 'Not registered'}</span><span class="stat">${fmtDateTZ(ev.date)}</span></div>
+          <div class="actions">
+            ${isRegistered? '<span class="btn btn-outline" style="cursor:default"><i class="fa-solid fa-circle-check"></i> Registered — see Dashboard</span>' : `<button class="btn btn-primary" data-id="${ev.id}" ${full?'disabled':''}><i class="fa-solid fa-arrow-up-right-from-square"></i> ${full?'Fully booked':'Register'}</button>`}
+            <a class="btn btn-outline" href="/dash/" title="View in dashboard"><i class="fa-solid fa-table-columns"></i></a>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+    grid.querySelectorAll('button[data-id]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id=btn.dataset.id;
+        const token=localStorage.getItem('zcm_access_token');
+        if(!token){ window.location.href='/login/'; return; }
+        btn.disabled=true; btn.textContent='Registering…';
+        try{
+          const r=await fetch('/api/events/'+id+'/register/',{method:'POST',headers:{'Authorization':'Bearer '+token}});
+          if(r.ok || r.status===200 || r.status===201){
+            toast('Registered! Check My Tracked Events in Dashboard.');
+            // update local state
+            const ev=EVENTS.find(e=>String(e.id)===String(id));
+            if(ev) ev.is_registered=true;
+            render();
+          }else{
+            const j=await r.json().catch(()=>({}));
+            toast(j.detail||'Could not register (maybe already registered).', true);
+            btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-arrow-up-right-from-square"></i> Register';
+          }
+        }catch(e){ toast('Network error',true); btn.disabled=false; }
+      });
+    });
+  }
+
+  document.querySelectorAll('.pill').forEach(p=>{
+    p.addEventListener('click',()=>{
+      document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
+      p.classList.add('active'); filter=p.dataset.f; render();
+    });
+  });
+  q.addEventListener('input', render);
+  load();
+})();
+</script>
+</body>
+</html>

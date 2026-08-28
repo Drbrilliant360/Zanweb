@@ -57,6 +57,9 @@ def terms_view(request):
 def volunteer_view(request):
     return render(request, 'myapp/volunteer.html')
 
+def events_view(request):
+    return render(request, 'myapp/events.html')
+
 def login_view(request):
     return render(request, 'myapp/login.html')
 

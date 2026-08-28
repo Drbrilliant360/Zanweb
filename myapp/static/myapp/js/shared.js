@@ -133,6 +133,7 @@ async function apiPut(path, body) {
       { href: djangoUrls.home || '/',           label: 'Home' },
       { href: djangoUrls.about || '/about/',     label: 'About Us' },
       { href: djangoUrls.programs || '/programs/',  label: 'Programs' },
+      { href: djangoUrls.events || '/events/', label: 'Events' },
       { href: djangoUrls.volunteer || '/volunteer/', label: 'Volunteer Hub' },
       { href: djangoUrls.gallery || '/gallery/',   label: 'Gallery' },
       { href: djangoUrls.stories || '/stories/',   label: 'Stories' },
@@ -323,9 +324,10 @@ async function apiPut(path, body) {
   // Notice that templates strings read directly from djangoUrls object here as well
   const BOT_RESPONSES = {
     default: `Thanks for reaching out! 😊 For more help, please <a href="${djangoUrls.contact || '/contact/'}" style='color:#F5C300;text-decoration:underline;'>contact us</a> or call +255 777 426 972.`,
-    hello: "Hello! 👋 Welcome to Zanchangemakers! How can I help you today? Ask me about our programs, volunteering, or how to donate.",
+    hello: "Hello! 👋 Welcome to Zanchangemakers! How can I help you today? Ask me about our programs, volunteering, events or how to donate.",
     volunteer: `We'd love to have you volunteer! 🌟 Visit our <a href="${djangoUrls.volunteer || '/volunteer/'}" style='color:#F5C300;text-decoration:underline;'>Volunteer Hub</a> to learn more and sign up.`,
     programs: `We run youth leadership, employability, and civic engagement programs. 🎯 See all details on our <a href="${djangoUrls.programs || '/programs/'}" style='color:#F5C300;text-decoration:underline;'>Programs page</a>.`,
+    events: `Join our community events! 🎉 Browse upcoming opportunities on our <a href="${djangoUrls.events || '/events/'}" style='color:#F5C300;text-decoration:underline;'>Events page</a> and register with one click.`,
     donate: `Your support means the world! ❤️ Visit our <a href="${djangoUrls.donate || '/donate/'}" style='color:#F5C300;text-decoration:underline;'>Donate page</a> to contribute.`,
     contact: `You can reach us at info@zanchangemakers.co.tz or call +255 777 426 972. 📞 Or visit our <a href="${djangoUrls.contact || '/contact/'}" style='color:#F5C300;text-decoration:underline;'>Contact page</a>.`,
     about: `Zanchangemakers was founded in 2021 to empower youth through volunteerism and leadership. Learn more on our <a href="${djangoUrls.about || '/about/'}" style='color:#F5C300;text-decoration:underline;'>About Us page</a>. 🌍`,
@@ -337,7 +339,8 @@ async function apiPut(path, body) {
   // Offline keyword fallback — used if free online model is unreachable
   function getLocalBotResponse(msg) {
     const m = msg.toLowerCase();
-    if (m.includes('hello') || m.includes('hi') || m.includes('hey')) return BOT_RESPONSES.hello;
+    if (m.includes('hello') || m.includes('hi') || m.includes('hey') || m.includes('jambo') || m.includes('habari')) return BOT_RESPONSES.hello;
+    if (m.includes('event')) return BOT_RESPONSES.events;
     if (m.includes('volunteer')) return BOT_RESPONSES.volunteer;
     if (m.includes('program') || m.includes('training')) return BOT_RESPONSES.programs;
     if (m.includes('donat') || m.includes('support') || m.includes('fund')) return BOT_RESPONSES.donate;
@@ -406,10 +409,10 @@ async function apiPut(path, body) {
           <div class="chat-bubble bot">👋 Hello! Welcome to <strong>Zanchangemakers</strong>. How can I help you today?</div>
         </div>
         <div class="chat-quick-btns">
+          <button onclick="zcmQuickMsg('Events')">Events</button>
           <button onclick="zcmQuickMsg('Volunteer')">Volunteer</button>
           <button onclick="zcmQuickMsg('Programs')">Programs</button>
           <button onclick="zcmQuickMsg('Donate')">Donate</button>
-          <button onclick="zcmQuickMsg('Contact')">Contact</button>
         </div>
         <div class="chat-input-row">
           <input type="text" id="zcmChatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') zcmSendMsg()">

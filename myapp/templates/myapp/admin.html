@@ -366,6 +366,7 @@ button { font-family: inherit; cursor: pointer; }
                 <button class="nav-link" data-page="registrations"><i class="fa-solid fa-user-group"></i> Registered Users</button>
                 <button class="nav-link" data-page="messages"><i class="fa-solid fa-envelope"></i> Contact Messages <span class="nav-badge" id="nav-badge-messages">0</span></button>
                 <button class="nav-link" data-page="donations"><i class="fa-solid fa-sack-dollar"></i> Donations</button>
+                <button class="nav-link" data-page="events"><i class="fa-solid fa-calendar-star"></i> Events <span class="nav-badge" id="nav-badge-events">0</span></button>
             </div>
 
             <div class="nav-group">
@@ -748,6 +749,47 @@ button { font-family: inherit; cursor: pointer; }
                 </div>
             </section>
 
+            <!-- ================= EVENTS (Admin CRUD — visible to normal users on /events/ & /dash/) ================= -->
+            <section class="page" id="page-events">
+                <div class="split-3" style="margin-bottom:22px;">
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--bg-tint);color:var(--navy);"><i class="fa-solid fa-calendar-star"></i></div><div class="metric-info"><h3 id="evTotal">0</h3><p>Total Events</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--green-bg);color:var(--green);"><i class="fa-solid fa-circle-check"></i></div><div class="metric-info"><h3 id="evOpen">0</h3><p>Open</p></div></div>
+                    <div class="metric-card"><div class="metric-icon" style="background:var(--amber-bg);color:var(--amber);"><i class="fa-solid fa-users"></i></div><div class="metric-info"><h3 id="evRegs">0</h3><p>Registrations</p></div></div>
+                </div>
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Events</h2><p class="hint">Create events here — they appear instantly for normal users on <a href="/events/" target="_blank" style="color:var(--navy);text-decoration:underline;">/events/</a> and in Dashboard → Events.</p></div>
+                        <button class="btn btn-primary btn-sm" onclick="openEventModal()"><i class="fa-solid fa-plus"></i> Add Event</button>
+                    </div>
+                    <div class="toolbar-row">
+                        <div class="filter-tabs" id="eventFilterTabs">
+                            <button class="filter-tab active" data-f="all">All</button>
+                            <button class="filter-tab" data-f="published">Published</button>
+                            <button class="filter-tab" data-f="draft">Draft</button>
+                        </div>
+                        <div class="search-mini"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="eventSearch" placeholder="Search events…"></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="table-events"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="section-block">
+                    <div class="section-block-head">
+                        <div><h2>Recent Registrations</h2><p class="hint">Who signed up — update attendance here, reflected in user’s My Tracked Events.</p></div>
+                        <button class="btn btn-outline btn-sm" onclick="loadEventRegs()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Volunteer</th><th>Event</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="table-event-regs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- ================= ADMIN TEAM ================= -->
             <section class="page" id="page-admins">
                 <div class="section-block">
@@ -969,6 +1011,7 @@ button { font-family: inherit; cursor: pointer; }
             { id: 2, donor: "Anonymous", amount: 120, method: "Bank Transfer", date: "2026-06-22", status: "verified" },
             { id: 3, donor: "Peter Mushi", amount: 75000, method: "Mobile Money", date: "2026-07-01", status: "pending" }
         ],
+        events: [],
         admins: [
             { id: 1, name: "Ahlam Ahmed", email: "ahlam@zanchangemakers.org", role: "Super Admin" },
             { id: 2, name: "Juma Bakari", email: "juma@zanchangemakers.org", role: "Program Lead" }
@@ -1003,6 +1046,7 @@ button { font-family: inherit; cursor: pointer; }
         messages: '/contact-messages/',
         users: '/volunteers/',
         admins: '/volunteers/',
+        events: '/events/',
         // local-only (no backend model yet): priorities, pillars, profiles, quicklinks, mobilemoney
         priorities: null, pillars: null, profiles: null, quicklinks: null, mobilemoney: null
     };
@@ -1013,6 +1057,16 @@ button { font-family: inherit; cursor: pointer; }
         if (listKey === 'gallery') return { title: record.caption||'Gallery image', caption: record.caption||'', category: 'yvf' };
         if (listKey === 'stories') return { title: record.title, excerpt: record.desc||'', content: record.desc||'' };
         if (listKey === 'counters' || listKey === 'stats') return { label: record.label||record.desc||record.title||'', value: record.value||record.year||'', icon: '' };
+        if (listKey === 'events') return {
+            title: record.title,
+            description: record.description||'',
+            location: record.location||'Zanzibar, Tanzania',
+            date: record.date,
+            start_time: record.start_time || null,
+            end_time: record.end_time || null,
+            capacity: record.capacity ? parseInt(record.capacity) : null,
+            is_published: !!record.is_published
+        };
         return record;
     }
     function fromApiRecord(listKey, apiRec) {
@@ -1021,6 +1075,7 @@ button { font-family: inherit; cursor: pointer; }
         if (listKey === 'gallery') return { id: apiRec.id, caption: apiRec.caption||apiRec.title||'' };
         if (listKey === 'stories') return { id: apiRec.id, title: apiRec.title, tag: '', desc: apiRec.excerpt||apiRec.content||'' };
         if (listKey === 'counters' || listKey === 'stats') return { id: apiRec.id, label: apiRec.label, value: apiRec.value, desc: apiRec.label };
+        if (listKey === 'events') return { id: apiRec.id, _apiId: apiRec.id, title: apiRec.title, description: apiRec.description, location: apiRec.location, date: apiRec.date, start_time: apiRec.start_time, end_time: apiRec.end_time, capacity: apiRec.capacity, is_published: apiRec.is_published, seats_taken: apiRec.seats_taken, seats_remaining: apiRec.seats_remaining };
         return apiRec;
     }
 
@@ -1070,7 +1125,7 @@ button { font-family: inherit; cursor: pointer; }
                 }
             }
             // CMS collections — try real API, fall back to localStorage defaults
-            var cmsKeys = ['partners','programs','gallery','stories','counters'];
+            var cmsKeys = ['partners','programs','gallery','stories','counters','events'];
             for (var ci=0; ci<cmsKeys.length; ci++) {
                 var ck = cmsKeys[ci]; var ep = apiMap[ck];
                 if (!ep) continue;
@@ -1182,6 +1237,7 @@ button { font-family: inherit; cursor: pointer; }
         "registrations": ["Registered Users", "Everyone with an account on the site."],
         "messages": ["Contact Messages", "Inbox for the public contact form."],
         "donations": ["Donations", "Track every contribution received."],
+        "events": ["Events", "Create and manage events — they appear instantly on /events/ and Dashboard → Events."],
         "admins": ["Admin Team", "People with access to this control center."],
         "settings": ["Site Settings", "Global configuration for the whole website."]
     };
@@ -1270,7 +1326,17 @@ button { font-family: inherit; cursor: pointer; }
         profiles: { title: "Volunteer Profile", fields: [{ k: "name", label: "Name", type: "text" }, { k: "role", label: "Role", type: "text" }, { k: "bio", label: "Bio", type: "textarea", full: true }, { k: "tags", label: "Tags (comma separated)", type: "text", full: true }] },
         quicklinks: { title: "Quick Link", fields: [{ k: "label", label: "Label", type: "text", full: true }, { k: "url", label: "URL", type: "text", full: true }] },
         mobilemoney: { title: "Mobile Money Channel", fields: [{ k: "provider", label: "Provider", type: "text", full: true }, { k: "detail", label: "USSD / Reference Detail", type: "text", full: true }] },
-        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }] }
+        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }] },
+        events: { title: "Event", fields: [
+            { k: "title", label: "Event Title", type: "text", full: true },
+            { k: "description", label: "Description", type: "textarea", full: true },
+            { k: "location", label: "Location (e.g. Zanzibar, Tanzania)", type: "text", full: true },
+            { k: "date", label: "Date (Africa/Dar_es_Salaam)", type: "date", full: true },
+            { k: "start_time", label: "Start Time", type: "time" },
+            { k: "end_time", label: "End Time", type: "time" },
+            { k: "capacity", label: "Capacity (blank = open)", type: "number" },
+            { k: "is_published", label: "Published — visible on /events/ & Dashboard", type: "checkbox", full: true }
+        ] }
     };
 
     let modalCtx = { listKey: null, editId: null };
@@ -1296,11 +1362,24 @@ button { font-family: inherit; cursor: pointer; }
                 f.options.forEach(o => { const opt = document.createElement("option"); opt.value = o; opt.textContent = o; input.appendChild(opt); });
             } else if (f.type === "file") {
                 input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+            } else if (f.type === "checkbox") {
+                input = document.createElement("input"); input.type = "checkbox"; input.style.width="18px"; input.style.height="18px";
+            } else if (f.type === "date" || f.type === "time" || f.type === "number") {
+                input = document.createElement("input"); input.type = f.type;
+                if (f.type === "number") input.min = "0";
             } else { input = document.createElement("input"); input.type = "text"; }
             input.id = "f-" + f.k;
             input.dataset.key = f.k;
-            if (existing && f.type !== "file") input.value = existing[f.k] || "";
+            if (existing && f.type !== "file") {
+                if (f.type === "checkbox") input.checked = !!existing[f.k];
+                else input.value = existing[f.k] != null ? existing[f.k] : "";
+            } else if (f.type === "checkbox" && !existing) {
+                // default checked for is_published
+                if (f.k === "is_published") input.checked = true;
+            }
             wrap.appendChild(input);
+            // for checkbox, put input before label text for better UX
+            if (f.type === "checkbox") { wrap.style.flexDirection="row"; wrap.style.alignItems="center"; wrap.style.gap="10px"; label.style.marginBottom="0"; }
             dynamicForm.appendChild(wrap);
         });
         formModalBackdrop.classList.add("open");
@@ -1315,8 +1394,12 @@ button { font-family: inherit; cursor: pointer; }
         cfg.fields.forEach(f => {
             const el = document.getElementById("f-" + f.k);
             if (f.type === "file") { fileEl = el; return; }
-            record[f.k] = el.value.trim();
-            if (!record[f.k] && f.full) valid = false;
+            if (f.type === "checkbox") {
+                record[f.k] = el.checked;
+            } else {
+                record[f.k] = el.value.trim();
+                if (!record[f.k] && f.full) valid = false;
+            }
         });
         if (!valid) { toast("Please fill in the required fields.", true); return; }
         const endpoint = apiMap[listKey];
@@ -1747,6 +1830,117 @@ button { font-family: inherit; cursor: pointer; }
     };
     document.getElementById("donationSearch").addEventListener("input", renderDonations);
 
+    /* ---------------- Events (Admin CRUD) ---------------- */
+    let eventFilter = "all";
+    let eventRegs = [];
+    function openEventModal(editId){ openListModal('events', editId||null); }
+    window.openEventModal = openEventModal;
+    function renderEvents(){
+        const el = document.getElementById("table-events");
+        if(!el) return;
+        el.innerHTML = "";
+        if(!data.events) data.events = [];
+        const q = (document.getElementById("eventSearch")?.value || "").toLowerCase();
+        let rows = data.events.filter(ev=>{
+            const matchesSearch = !q || (ev.title||"").toLowerCase().includes(q) || (ev.location||"").toLowerCase().includes(q);
+            const isPub = !!ev.is_published;
+            if(eventFilter==="published" && !isPub) return false;
+            if(eventFilter==="draft" && isPub) return false;
+            return matchesSearch;
+        });
+        // metrics
+        const total = data.events.length;
+        const open = data.events.filter(ev=> ev.is_published && (ev.seats_remaining==null || ev.seats_remaining>0)).length;
+        document.getElementById("evTotal").textContent = total;
+        document.getElementById("evOpen").textContent = open;
+        document.getElementById("nav-badge-events").textContent = total;
+        document.getElementById("nav-badge-events").style.display = total? "inline-flex":"none";
+        // regs count
+        document.getElementById("evRegs").textContent = eventRegs.length;
+        if(!rows.length){
+            el.innerHTML = `<tr><td colspan="6">${emptyState("fa-calendar-star","No events","Create your first event — it appears instantly on /events/ and Dashboard.")}</td></tr>`;
+            return;
+        }
+        rows.sort((a,b)=> new Date(a.date)-new Date(b.date)).forEach(ev=>{
+            const cap = ev.capacity==null ? "Open" : `${ev.seats_taken||0}/${ev.capacity}`;
+            const remain = ev.seats_remaining==null ? "Open" : (ev.seats_remaining+" left");
+            const pubPill = ev.is_published ? '<span class="pill verified">Published</span>' : '<span class="pill pending">Draft</span>';
+            el.innerHTML += `<tr>
+                <td class="cell-name"><strong>${esc(ev.title)}</strong><span>${esc(ev.description||"").slice(0,60)}</span></td>
+                <td>${fmtDate(ev.date)}<br><span style="color:var(--ink3);font-size:.76rem">${esc(ev.start_time||"")}${ev.end_time? " – "+esc(ev.end_time):""}</span></td>
+                <td>${esc(ev.location||"")}</td>
+                <td>${cap}<br><span style="color:${ev.seats_remaining===0?'var(--crimson)':'var(--ink3)'};font-size:.76rem">${esc(remain)}</span></td>
+                <td>${pubPill}</td>
+                <td><div class="row-actions">
+                    <button class="act-btn view" title="View on site" onclick="window.open('/events/','_blank')"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+                    <button class="act-btn edit" onclick="openEventModal(${ev.id})"><i class="fa-solid fa-pen"></i></button>
+                    <button class="act-btn del" onclick="deleteListItem('events',${ev.id})"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+    async function loadEventRegs(){
+        try{
+            const r = await apiGet('/event-registrations/');
+            if(r){
+                const list = r.results||r;
+                eventRegs = Array.isArray(list)? list : [];
+                renderEventRegs();
+                renderEvents();
+            }
+        }catch(e){}
+    }
+    function renderEventRegs(){
+        const el = document.getElementById("table-event-regs");
+        if(!el) return;
+        el.innerHTML="";
+        if(!eventRegs.length){
+            el.innerHTML=`<tr><td colspan="5">${emptyState("fa-users","No registrations yet","Users registering on /events/ will appear here.")}</td></tr>`;
+            return;
+        }
+        const q = ""; // future search
+        eventRegs.slice(0,20).sort((a,b)=> new Date(b.registered_at)-new Date(a.registered_at)).forEach(reg=>{
+            const ev = data.events.find(e=> e._apiId===reg.event || e.id===reg.event);
+            const evTitle = ev? ev.title : ("Event #"+reg.event);
+            const vol = reg.volunteer_email || reg.volunteer || "User";
+            el.innerHTML+=`<tr>
+                <td>${esc(vol)}</td>
+                <td>${esc(evTitle)}</td>
+                <td>${fmtDate((reg.registered_at||"").slice(0,10))}</td>
+                <td><span class="pill ${reg.status==='registered'?'pending': reg.status==='attended'?'verified':'pending'}">${esc(reg.status)}</span></td>
+                <td><div class="row-actions">
+                    ${reg.status==='registered'? `<button class="act-btn approve" title="Mark attended" onclick="markEventAttended(${reg.id})"><i class="fa-solid fa-check"></i></button>`:''}
+                    <button class="act-btn del" title="Cancel" onclick="cancelEventReg(${reg.id})"><i class="fa-solid fa-xmark"></i></button>
+                </div></td>
+            </tr>`;
+        });
+    }
+    window.markEventAttended = async function(regId){
+        try{
+            const r = await apiPost('/event-registrations/'+regId+'/mark_attended/', {hours_logged:4});
+            if(r && r.ok) toast("Marked attended (server)."); else toast("Marked attended (local).");
+            loadEventRegs();
+        }catch(e){ toast("Could not update",true); }
+    };
+    window.cancelEventReg = async function(regId){
+        confirmAction("Cancel this registration?", async ()=>{
+            try{ await apiDelete('/event-registrations/'+regId+'/'); }catch(e){}
+            eventRegs = eventRegs.filter(r=> r.id!==regId);
+            renderEventRegs(); renderEvents(); toast("Registration cancelled.");
+        });
+    };
+    // Filter/Search wiring
+    setTimeout(()=>{
+        const tabs=document.getElementById("eventFilterTabs");
+        if(tabs) tabs.addEventListener("click",e=>{
+            const b=e.target.closest(".filter-tab"); if(!b) return;
+            tabs.querySelectorAll(".filter-tab").forEach(x=>x.classList.remove("active"));
+            b.classList.add("active"); eventFilter=b.dataset.f; renderEvents();
+        });
+        const s=document.getElementById("eventSearch");
+        if(s) s.addEventListener("input", renderEvents);
+    },0);
+
     /* ---------------- Overview ---------------- */
     let chartApps, chartDons;
     function renderOverview() {
@@ -1837,6 +2031,7 @@ button { font-family: inherit; cursor: pointer; }
         renderHubTiers(); renderProfiles();
         renderQuicklinks(); renderMobileMoney();
         renderApplicants(); renderUsers(); renderMessages(); renderDonations();
+        renderEvents(); renderEventRegs();
         renderAdmins();
         renderOverview();
     }
@@ -1881,6 +2076,7 @@ button { font-family: inherit; cursor: pointer; }
             if (me && me.role) localStorage.setItem('zcm_user_role', me.role);
         }
         await loadAdminFromAPI();
+        await loadEventRegs();
         renderAll();
     })();
 })();

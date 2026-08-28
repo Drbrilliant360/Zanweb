@@ -28,16 +28,35 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = "django-insecure-y0*1gpc1ne2o*@q+$lk#bs%)-nok4568e2y0+t%*!telp=9@z1"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# On Vercel default to False (production), locally default True
+DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('VERCEL') == '1' else 'True') == 'True'
 
-_allowed = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
-ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
+# --- Hosts for Vercel + local ---
+# Vercel sets VERCEL_URL (e.g. zanweb-xyz.vercel.app) and host is zanweb-flax.vercel.app
+_allowed_str = os.environ.get('ALLOWED_HOSTS', '')
+if _allowed_str:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_str.split(',') if h.strip()]
+else:
+    # Default for local + Vercel: allow localhost, .vercel.app wildcard and the custom domain
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.vercel.app', 'zanweb-flax.vercel.app', 'zanweb-flax-git-main-drbrilliant360s-projects.vercel.app', 'zanweb-8xo873kzl-drbrilliant360s-projects.vercel.app']
+# Always allow Vercel-injected hosts
+for _env_host in [os.environ.get('VERCEL_URL'), os.environ.get('VERCEL_BRANCH_URL')]:
+    if _env_host and _env_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_env_host)
+# Also allow any host from SITE_BASE_URL
 _site = os.environ.get('SITE_BASE_URL', '')
 if _site:
     from urllib.parse import urlparse
     _host = urlparse(_site).hostname
     if _host and _host not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_host)
+# Vercel preview suffix - ensure wildcard
+if '.vercel.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.vercel.app')
+# For static export without DB, allow all if no DATABASE_URL (fallback)
+if os.environ.get('VERCEL') == '1' and not os.environ.get('DATABASE_URL'):
+    # Still need to allow host; already done
+    pass
 
 
 # Application definition
@@ -92,16 +111,35 @@ TEMPLATES = [
 WSGI_APPLICATION = "myproject.wsgi.application"
 
 
-# Database
+# Database — use Neon if DATABASE_URL set, otherwise fallback to sqlite for Vercel preview/static
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+_database_url = os.environ.get("DATABASE_URL")
+if _database_url:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=_database_url,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+# CSRF — allow Vercel hosts to POST (login, chatbot, etc.)
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if os.environ.get("CSRF_TRUSTED_ORIGINS") else []
+if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
+    CSRF_TRUSTED_ORIGINS = []
+for _o in ["https://*.vercel.app", "https://zanweb-flax.vercel.app", "https://zanweb-8xo873kzl-drbrilliant360s-projects.vercel.app"]:
+    if _o not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_o)
+_site_origin = os.environ.get("SITE_BASE_URL")
+if _site_origin and _site_origin not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(_site_origin)
 
 
 # Password validation
