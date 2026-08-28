@@ -188,12 +188,15 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# WhiteNoise — serve static efficiently on Vercel + local
+# WhiteNoise — serve static efficiently on Vercel + local (no manifest to avoid 500 on missing hashed file)
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
+WHITENOISE_USE_FINDERS = True
 WHITENOISE_ALLOW_ALL_ORIGINS = True
+# Vercel: don't require manifest file
+WHITENOISE_MANIFEST_STRICT = False
 
 AUTH_USER_MODEL = 'accounts.User'
 
