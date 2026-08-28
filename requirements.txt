@@ -8,3 +8,4 @@ python-dotenv
 requests
 whitenoise
 Pillow>=10.0.0
+gunicorn>=21.0.0
