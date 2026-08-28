@@ -7,3 +7,4 @@ dj-database-url
 python-dotenv
 requests
 whitenoise
+Pillow>=10.0.0
