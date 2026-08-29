@@ -1,6 +1,6 @@
 import os
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from accounts.models import User, VolunteerProfile
 
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--password',
-            default=os.environ.get('DEFAULT_ADMIN_PASSWORD', 'Admin@Zcm2026'),
+            default=os.environ.get('DEFAULT_ADMIN_PASSWORD'),
         )
         parser.add_argument(
             '--reset',
@@ -26,6 +26,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         email = options['email'].strip().lower()
         password = options['password']
+
+        if not password:
+            raise CommandError(
+                'Set DEFAULT_ADMIN_PASSWORD or provide --password. '
+                'A default administrator password is intentionally not provided.'
+            )
 
         user, created = User.objects.get_or_create(
             email=email,

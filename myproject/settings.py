@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -24,12 +25,24 @@ load_dotenv(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-y0*1gpc1ne2o*@q+$lk#bs%)-nok4568e2y0+t%*!telp=9@z1"
+def env_flag(name, default=False):
+    """Read a boolean environment variable without treating arbitrary text as true."""
+    return os.environ.get(name, str(default)).strip().lower() in {'1', 'true', 'yes', 'on'}
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# On Vercel default to False (production), locally default True
-DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('VERCEL') == '1' else 'True') == 'True'
+
+IS_TESTING = 'test' in sys.argv
+# Debug must be explicitly enabled. This prevents an accidental production deployment
+# from exposing tracebacks and settings just because DEBUG was omitted.
+DEBUG = env_flag('DEBUG', False)
+
+# Never ship a repository-owned secret. Tests and an explicit local DEBUG session may
+# use a harmless development value; every other environment must provide a real key.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG or IS_TESTING:
+        SECRET_KEY = 'development-only-not-for-production-change-me'
+    else:
+        raise RuntimeError('DJANGO_SECRET_KEY must be set when DEBUG is False.')
 
 # --- Hosts for Vercel + local ---
 # Vercel sets VERCEL_URL (e.g. zanweb-xyz.vercel.app) and host is zanweb-flax.vercel.app
@@ -114,7 +127,7 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 
 # Database — use Neon if DATABASE_URL set, otherwise fallback to sqlite for Vercel preview/static
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-_database_url = os.environ.get("DATABASE_URL")
+_database_url = None if IS_TESTING else os.environ.get("DATABASE_URL")
 if _database_url:
     DATABASES = {
         "default": dj_database_url.config(
@@ -132,10 +145,11 @@ else:
     }
 
 # CSRF — allow Vercel hosts to POST (login, chatbot, etc.)
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if os.environ.get("CSRF_TRUSTED_ORIGINS") else []
-if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
-    CSRF_TRUSTED_ORIGINS = []
-for _o in ["https://*.vercel.app", "https://zanweb-flax.vercel.app", "https://zanweb-8xo873kzl-drbrilliant360s-projects.vercel.app"]:
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+for _o in ["https://zanweb-flax.vercel.app", "https://zanweb-8xo873kzl-drbrilliant360s-projects.vercel.app"]:
     if _o not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_o)
 _site_origin = os.environ.get("SITE_BASE_URL")
@@ -227,6 +241,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+_cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if _cors_origins:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_origins.split(',') if origin.strip()]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -236,17 +253,48 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# ── Production security ──────────────────────────────────────
+# TLS is terminated by Vercel, so Django must trust its forwarded scheme header.
+if not DEBUG and not IS_TESTING:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31_536_000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+
+# Protect public forms, authentication endpoints, and external API proxies from
+# automated abuse. Individual views can request a stricter scope when needed.
+REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = [
+    'rest_framework.throttling.AnonRateThrottle',
+    'rest_framework.throttling.UserRateThrottle',
+]
+REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+    'anon': '60/minute',
+    'user': '180/minute',
+    'auth': '10/minute',
+    'chatbot': '10/minute',
 }
 
 # ── Payments (Snippe USSD / Mobile Money) ─────────────────────
 PAYMENT_GATEWAY_PROVIDER = os.environ.get('PAYMENT_GATEWAY_PROVIDER', 'snippe')
 SNIPPE_API_KEY = os.environ.get('SNIPPE_API_KEY', '')
 SNIPPE_WEBHOOK_SECRET = os.environ.get('SNIPPE_WEBHOOK_SECRET', '')
+SNIPPE_REQUIRE_WEBHOOK_SIGNATURE = not DEBUG and not IS_TESTING
 SNIPPE_API_BASE_URL = os.environ.get('SNIPPE_API_BASE_URL', 'https://api.snippe.sh')
 SNIPPE_API_VERSION = os.environ.get('SNIPPE_API_VERSION', '2026-01-25')
 SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'http://127.0.0.1:8000')
 # Required — HTTPS only (Snippe VAL_001). Register in Snippe Dashboard → Webhooks.
 SNIPPE_WEBHOOK_URL = os.environ.get('SNIPPE_WEBHOOK_URL', '')
-

@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, throttling, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -10,7 +10,10 @@ from .serializers import (
     UserSerializer,
     ChangePasswordSerializer,
     VolunteerProfileSerializer,
+    PublicVolunteerSerializer,
+    AdminUserSerializer,
 )
+from .permissions import IsAdminRole
 from .permissions import IsAdminRole
 
 
@@ -24,6 +27,8 @@ def get_tokens_for_user(user):
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = 'auth'
 
     def post(self, request):
         ser = RegisterSerializer(data=request.data)
@@ -38,6 +43,8 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = 'auth'
 
     def post(self, request):
         ser = LoginSerializer(data=request.data, context={'request': request})
@@ -86,7 +93,7 @@ class ChangePasswordView(APIView):
 
 class VolunteerListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class = UserSerializer
+    serializer_class = PublicVolunteerSerializer
 
     def get_queryset(self):
         qs = User.objects.filter(role='volunteer', is_active=True,
@@ -106,3 +113,19 @@ class VolunteerDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminRole]
     queryset = User.objects.filter(role='volunteer')
     serializer_class = UserSerializer
+
+
+class AdminUserViewSet(viewsets.ModelViewSet):
+    """Safe account management for the custom admin workspace."""
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAdminRole]
+
+    def perform_destroy(self, instance):
+        if instance == self.request.user:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'You cannot delete your own account.'})
+        if instance.role == 'admin' and User.objects.filter(role='admin', is_active=True).count() <= 1:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'At least one active administrator must remain.'})
+        instance.delete()

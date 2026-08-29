@@ -1054,8 +1054,8 @@ button { font-family: inherit; cursor: pointer; }
         donations: '/donations/',
         applicants: '/applications/',
         messages: '/contact-messages/',
-        users: '/volunteers/',
-        admins: '/volunteers/',
+        users: '/admin/users/',
+        admins: '/admin/users/',
         events: '/events/',
         // local-only (no backend model yet): priorities, pillars, profiles, quicklinks, mobilemoney
         priorities: null, pillars: null, profiles: null, quicklinks: null, mobilemoney: null
@@ -1077,6 +1077,14 @@ button { font-family: inherit; cursor: pointer; }
             capacity: record.capacity ? parseInt(record.capacity) : null,
             is_published: !!record.is_published
         };
+        if (listKey === 'admins') {
+            var names = (record.name || '').trim().split(/\s+/, 2);
+            var roles = { 'Super Admin': 'admin', 'Program Lead': 'coordinator', 'Editor': 'coordinator' };
+            return {
+                first_name: names[0] || '', last_name: names[1] || '', email: record.email,
+                role: roles[record.role] || 'coordinator', password: record.password || undefined,
+            };
+        }
         return record;
     }
     function fromApiRecord(listKey, apiRec) {
@@ -1086,6 +1094,7 @@ button { font-family: inherit; cursor: pointer; }
         if (listKey === 'stories') return { id: apiRec.id, title: apiRec.title, tag: '', desc: apiRec.excerpt||apiRec.content||'' };
         if (listKey === 'counters' || listKey === 'stats') return { id: apiRec.id, label: apiRec.label, value: apiRec.value, desc: apiRec.label };
         if (listKey === 'events') return { id: apiRec.id, _apiId: apiRec.id, title: apiRec.title, description: apiRec.description, location: apiRec.location, date: apiRec.date, start_time: apiRec.start_time, end_time: apiRec.end_time, capacity: apiRec.capacity, is_published: apiRec.is_published, seats_taken: apiRec.seats_taken, seats_remaining: apiRec.seats_remaining };
+        if (listKey === 'admins') return { id: apiRec.id, _apiId: apiRec.id, name: ((apiRec.first_name || '') + ' ' + (apiRec.last_name || '')).trim() || apiRec.email, email: apiRec.email, role: apiRec.role === 'admin' ? 'Super Admin' : 'Program Lead' };
         return apiRec;
     }
 
@@ -1167,9 +1176,9 @@ button { font-family: inherit; cursor: pointer; }
                     }
                 } catch(e){ /* keep local */ }
             }
-            // Users & Admins — load from /volunteers/ (real User model)
+            // Users & Admins — load from the protected admin account endpoint.
             try {
-                var volsResp = await apiGet('/volunteers/');
+                var volsResp = await apiGet('/admin/users/');
                 if (volsResp) {
                     var vlist = volsResp.results || volsResp;
                     if (Array.isArray(vlist) && vlist.length) {
@@ -1353,7 +1362,7 @@ button { font-family: inherit; cursor: pointer; }
         profiles: { title: "Volunteer Profile", fields: [{ k: "name", label: "Name", type: "text" }, { k: "role", label: "Role", type: "text" }, { k: "bio", label: "Bio", type: "textarea", full: true }, { k: "tags", label: "Tags (comma separated)", type: "text", full: true }] },
         quicklinks: { title: "Quick Link", fields: [{ k: "label", label: "Label", type: "text", full: true }, { k: "url", label: "URL", type: "text", full: true }] },
         mobilemoney: { title: "Mobile Money Channel", fields: [{ k: "provider", label: "Provider", type: "text", full: true }, { k: "detail", label: "USSD / Reference Detail", type: "text", full: true }] },
-        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }] },
+        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }, { k: "password", label: "Password (12+ characters; required for new account)", type: "text" }] },
         events: { title: "Event", fields: [
             { k: "title", label: "Event Title", type: "text", full: true },
             { k: "description", label: "Description", type: "textarea", full: true },
@@ -1755,10 +1764,10 @@ button { font-family: inherit; cursor: pointer; }
         if (!u) return;
         const newStatus = u.status === "active" ? "suspended" : "active";
         const apiId = u._apiId || id;
-        // Try PATCH /api/volunteers/{id}/ with is_active
+        // Update through the protected admin user API.
         if (typeof apiPatch !== 'undefined') {
             try {
-                const resp = await apiPatch('/volunteers/' + apiId + '/', { is_active: newStatus === 'active' });
+                const resp = await apiPatch('/admin/users/' + apiId + '/', { is_active: newStatus === 'active' });
                 if (resp && resp.ok) { u.status = newStatus; persist(); renderAll(); toast("User status updated (server)."); return; }
             } catch(e){ console.warn('User status API failed', e); }
         }

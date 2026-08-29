@@ -15,7 +15,14 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def snippe_webhook(request):
-    raw_body = request.body.decode('utf-8')
+    try:
+        raw_body = request.body.decode('utf-8')
+    except UnicodeDecodeError:
+        return HttpResponseBadRequest('Invalid request encoding')
+
+    if settings.SNIPPE_REQUIRE_WEBHOOK_SIGNATURE and not settings.SNIPPE_WEBHOOK_SECRET:
+        logger.error('Rejected Snippe webhook because SNIPPE_WEBHOOK_SECRET is not configured')
+        return HttpResponseBadRequest('Webhook verification is unavailable')
 
     if settings.SNIPPE_WEBHOOK_SECRET:
         try:

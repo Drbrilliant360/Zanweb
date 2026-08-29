@@ -37,7 +37,7 @@ function clearTokens() {
 
 function isAdminUser(user) {
   if (!user) return false;
-  return user.role === 'admin' || user.role === 'coordinator';
+  return user.role === 'admin';
 }
 
 function getPostLoginRedirect(user) {

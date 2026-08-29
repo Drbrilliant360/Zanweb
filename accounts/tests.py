@@ -153,6 +153,16 @@ class AuthTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertGreaterEqual(len(r.data['results']), 2)
 
+    def test_volunteer_list_does_not_expose_private_contact_data(self):
+        self.vol.phone_number = '+255777000111'
+        self.vol.street_address = 'Private address'
+        self.vol.save()
+        r = self.client.get('/api/volunteers/')
+        volunteer = next(item for item in r.data['results'] if item['id'] == self.vol.id)
+        self.assertNotIn('email', volunteer)
+        self.assertNotIn('phone_number', volunteer)
+        self.assertNotIn('street_address', volunteer)
+
     def test_volunteer_list_search(self):
         r = self.client.get('/api/volunteers/?search=Zanzibar')
         self.assertEqual(r.status_code, 200)
@@ -167,3 +177,26 @@ class AuthTests(TestCase):
         self.client.force_authenticate(user=self.vol)
         r = self.client.get(f'/api/volunteers/{self.vol.id}/')
         self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_user_workspace_operations(self):
+        self.client.force_authenticate(user=self.admin)
+        created = self.client.post('/api/admin/users/', {
+            'email': 'coordinator@test.com', 'first_name': 'Coordinator',
+            'role': 'coordinator', 'password': 'a-safe-password-123',
+        }, format='json')
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        user_id = created.data['id']
+        updated = self.client.patch(f'/api/admin/users/{user_id}/', {'is_active': False}, format='json')
+        self.assertEqual(updated.status_code, status.HTTP_200_OK)
+        self.assertFalse(updated.data['is_active'])
+
+    def test_admin_cannot_delete_self(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.delete(f'/api/admin/users/{self.admin.id}/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_admin_pages_are_accessible_to_administrator(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get('/admin/').status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get('/admin/accounts/user/').status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get('/admin-workspace/').status_code, status.HTTP_200_OK)

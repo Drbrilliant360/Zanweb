@@ -1,10 +1,8 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, throttling
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import mail_admins
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from accounts.permissions import IsCoordinatorOrAdminOrReadOnly
 import requests
 import urllib.parse
@@ -177,9 +175,10 @@ class SiteContentView(APIView):
 
 # Free online model proxy — Pollinations AI (no API key, OpenAI-compatible)
 # Found via https://text.pollinations.ai — free, anonymous tier, Mistral/Llama backing
-@method_decorator(csrf_exempt, name='dispatch')
 class ChatbotProxyView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [throttling.ScopedRateThrottle]
+    throttle_scope = 'chatbot'
     # Tanzanian context injected so free model answers as Zanchangemakers assistant
     SYSTEM_PROMPT = (
         "You are Zanchangemakers Support — a friendly assistant for Zanchangemakers, "
@@ -197,6 +196,8 @@ class ChatbotProxyView(APIView):
             msg = (request.query_params.get('q') or '').strip()
         if not msg:
             return Response({'detail': 'message is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(msg) > 500:
+            return Response({'detail': 'message must be 500 characters or fewer'}, status=status.HTTP_400_BAD_REQUEST)
         # First try FAQ quick match for speed
         # Then try free online model
         import time as _time

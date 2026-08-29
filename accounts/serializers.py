@@ -98,6 +98,59 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class PublicVolunteerSerializer(serializers.ModelSerializer):
+    """The deliberately small profile returned by the public volunteer directory."""
+    full_name = serializers.SerializerMethodField()
+    bio = serializers.CharField(source='volunteer_profile.bio', read_only=True)
+    skills = serializers.CharField(source='volunteer_profile.skills', read_only=True)
+    location = serializers.CharField(source='volunteer_profile.location', read_only=True)
+    rank = serializers.CharField(source='volunteer_profile.rank', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'avatar', 'bio', 'skills', 'location', 'rank']
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    """Account management serializer used only by the protected admin workspace."""
+    password = serializers.CharField(write_only=True, min_length=12, required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'role', 'is_active',
+            'is_staff', 'date_joined', 'created_at', 'password',
+        ]
+        read_only_fields = ['id', 'date_joined', 'created_at', 'is_staff']
+
+    def validate(self, attrs):
+        if self.instance is None and not attrs.get('password'):
+            raise serializers.ValidationError({'password': 'A password is required when creating an account.'})
+        return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        role = validated_data.get('role', 'volunteer')
+        user = User.objects.create_user(**validated_data, password=password)
+        if role == 'admin':
+            user.is_staff = True
+            user.save(update_fields=['is_staff'])
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+        # Django-admin access follows the application admin role.
+        user.is_staff = user.role == 'admin'
+        user.save()
+        return user
+
+
 class RegisterSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)

@@ -20,14 +20,13 @@ def admin_view(request):
     if request.user.is_authenticated:
         is_admin = (
             getattr(request.user, 'is_admin_role', False)
-            or getattr(request.user, 'is_coordinator', False)
             or request.user.is_staff
             or request.user.is_superuser
-            or getattr(request.user, 'role', '') in ('admin', 'coordinator')
+            or getattr(request.user, 'role', '') == 'admin'
         )
         if not is_admin:
             return redirect('dash')
-    # Anonymous or admin/coordinator → render shell; JS will redirect unauthenticated to /login/
+    # Anonymous or admin → render shell; JS will redirect unauthenticated users to /login/.
     return render(request, 'myapp/admin.html')
 
 def donate_view(request):
