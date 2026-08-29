@@ -1031,6 +1031,16 @@ button { font-family: inherit; cursor: pointer; }
     function persist() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
         catch (e) { toast("Could not save locally — storage may be full.", true); }
+        // Persist to database via SiteContent API (so changes survive across devices/browsers)
+        try {
+            if (typeof apiPut !== 'undefined' && typeof getToken === 'function' && getToken()) {
+                // Fire-and-forget; don't block UI. Server will store the whole admin data JSON.
+                apiPut('/site-content/', data).then(function(r){
+                    if (r && !r.ok) console.warn('SiteContent DB save failed', r.status, r.data);
+                    else if (r && r.ok) console.log('SiteContent saved to DB');
+                }).catch(function(e){ console.warn('SiteContent save error', e); });
+            }
+        } catch(e){ console.warn('persist DB error', e); }
     }
 
     // Tanzania CRUD — maps admin list keys to real Django API endpoints (null = localStorage only)
@@ -1083,6 +1093,23 @@ button { font-family: inherit; cursor: pointer; }
     async function loadAdminFromAPI() {
         try {
             if (typeof apiGet === 'undefined') return;
+            // Load CMS bulk data from DB (SiteContent) first — this is the source of truth for hero, mission, etc.
+            try {
+                var siteContent = await apiGet('/site-content/');
+                if (siteContent && siteContent.data && typeof siteContent.data === 'object') {
+                    var scData = siteContent.data;
+                    // Only merge if it looks like valid admin data (has hero or priorities)
+                    if (scData.hero || scData.mission || scData.priorities) {
+                        Object.keys(scData).forEach(function(k){
+                            // Don't overwrite transactional live data (applicants/messages/donations/events/users) with stale cached data
+                            if (['applicants','messages','donations','users','admins','events'].indexOf(k) !== -1) return;
+                            data[k] = scData[k];
+                        });
+                        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+                        console.log('SiteContent loaded from DB');
+                    }
+                }
+            } catch(e){ console.warn('SiteContent load failed, using localStorage', e); }
             var dash = await apiGet('/dashboard/admin/');
             if (dash) {
                 document.getElementById('mAppTotal').textContent = dash.total_volunteers != null ? dash.total_volunteers : '0';

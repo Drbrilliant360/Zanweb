@@ -117,3 +117,20 @@ class OrgStat(models.Model):
 
     def __str__(self):
         return f"{self.label}: {self.value}"
+
+
+class SiteContent(models.Model):
+    """Single JSON store for all admin CMS data (hero, mission, etc.) that has no dedicated model.
+    Stored under key 'zcm_admin_data_v1' to match localStorage key."""
+    key = models.CharField(max_length=100, unique=True, default='zcm_admin_data_v1')
+    data = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        'accounts.User', null=True, blank=True, on_delete=models.SET_NULL, related_name='site_content_updates'
+    )
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"SiteContent {self.key} ({self.updated_at:%Y-%m-%d})"

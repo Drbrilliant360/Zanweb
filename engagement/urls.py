@@ -14,5 +14,7 @@ router.register('org-stats', views.OrgStatViewSet)
 urlpatterns = [
     path('faq/match/', views.FAQMatchView.as_view(), name='api_faq_match'),
     path('chatbot/', views.ChatbotProxyView.as_view(), name='api_chatbot'),
+    path('site-content/', views.SiteContentView.as_view(), name='api_site_content'),
+    path('site-content/<str:key>/', views.SiteContentView.as_view(), name='api_site_content_key'),
     path('', include(router.urls)),
 ]

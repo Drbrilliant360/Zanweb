@@ -10,7 +10,7 @@ import requests
 import urllib.parse
 from .models import (
     ContactMessage, NewsletterSubscriber, Partner,
-    Story, GalleryImage, FAQ, OrgStat,
+    Story, GalleryImage, FAQ, OrgStat, SiteContent,
 )
 from .serializers import (
     ContactMessageSerializer,
@@ -20,6 +20,7 @@ from .serializers import (
     GalleryImageSerializer,
     FAQSerializer,
     OrgStatSerializer,
+    SiteContentSerializer,
 )
 
 
@@ -144,6 +145,34 @@ class FAQMatchView(APIView):
             'topic': 'No specific match',
             'question': None,
         })
+
+
+class SiteContentView(APIView):
+    """Persist all admin CMS data (hero, mission, priorities, etc.) to DB.
+    GET is public (for future public pages), PUT/PATCH requires admin."""
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
+
+    def get(self, request, key='zcm_admin_data_v1'):
+        obj, _ = SiteContent.objects.get_or_create(key=key, defaults={'data': {}})
+        ser = SiteContentSerializer(obj)
+        return Response(ser.data)
+
+    def put(self, request, key='zcm_admin_data_v1'):
+        obj, _ = SiteContent.objects.get_or_create(key=key, defaults={'data': {}})
+        # Accept either {data: {...}} or raw {...}
+        incoming = request.data.get('data') if isinstance(request.data.get('data'), dict) else request.data
+        if not isinstance(incoming, dict):
+            return Response({'detail': 'data must be an object'}, status=status.HTTP_400_BAD_REQUEST)
+        obj.data = incoming
+        obj.updated_by = request.user if request.user.is_authenticated else None
+        obj.save()
+        return Response(SiteContentSerializer(obj).data)
+
+    def patch(self, request, key='zcm_admin_data_v1'):
+        return self.put(request, key)
 
 
 # Free online model proxy — Pollinations AI (no API key, OpenAI-compatible)

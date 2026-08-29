@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     ContactMessage, NewsletterSubscriber, Partner,
-    Story, GalleryImage, FAQ, OrgStat,
+    Story, GalleryImage, FAQ, OrgStat, SiteContent,
 )
 
 
@@ -49,3 +49,10 @@ class OrgStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrgStat
         fields = '__all__'
+
+
+class SiteContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteContent
+        fields = ['id', 'key', 'data', 'updated_at', 'updated_by']
+        read_only_fields = ['id', 'updated_at', 'updated_by']
