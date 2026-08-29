@@ -851,10 +851,10 @@ button { font-family: inherit; cursor: pointer; }
             <button class="modal-close" onclick="closeFormModal()" aria-label="Close dialog"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
-            <form id="dynamicForm" class="form-grid"></form>
+            <form id="dynamicForm" class="form-grid" onsubmit="return false;" autocomplete="off"></form>
             <div class="form-actions">
-                <button class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitFormModal()"><i class="fa-solid fa-check"></i> Save</button>
+                <button type="button" class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitFormModal()"><i class="fa-solid fa-check"></i> Save</button>
             </div>
         </div>
     </div>
@@ -2060,7 +2060,19 @@ button { font-family: inherit; cursor: pointer; }
     });
     [formModalBackdrop, confirmBackdrop, msgBackdrop].forEach(bd => {
         bd.addEventListener("click", e => { if (e.target === bd) bd.classList.remove("open"); });
+        const box = bd.querySelector('.modal-box');
+        if (box) box.addEventListener('click', e => e.stopPropagation());
     });
+    // Prevent Enter inside modal form from submitting/reloading and closing the popup
+    const dfEl = document.getElementById('dynamicForm');
+    if (dfEl) {
+        dfEl.addEventListener('submit', e => e.preventDefault());
+        dfEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        });
+    }
 
     (async function initAdmin() {
         if (typeof isAuthenticated === 'function' && !isAuthenticated()) {
