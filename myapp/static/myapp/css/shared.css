@@ -471,6 +471,13 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--white);
 }
 
+.ft-socials a svg {
+    fill: #ffffff;
+    width: 24px;
+    height: 24px;
+    transition: opacity 0.2s ease;
+}
+
 .ft-socials a {
   width: 36px;
   height: 36px;
