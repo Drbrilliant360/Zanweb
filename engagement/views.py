@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import mail_admins
-from accounts.permissions import IsCoordinatorOrAdminOrReadOnly
+from accounts.permissions import IsCoordinatorOrAdminOrReadOnly, IsAdminRole
 import requests
 import urllib.parse
 from .models import (
@@ -164,11 +164,11 @@ class FAQMatchView(APIView):
 
 class SiteContentView(APIView):
     """Persist all admin CMS data (hero, mission, priorities, etc.) to DB.
-    GET is public (for future public pages), PUT/PATCH requires admin."""
+    GET is public (for future public pages), PUT/PATCH requires admin role."""
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [IsAdminRole()]
 
     def get(self, request, key='zcm_admin_data_v1'):
         obj, _ = SiteContent.objects.get_or_create(key=key, defaults={'data': {}})

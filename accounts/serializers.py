@@ -134,9 +134,15 @@ class AdminUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         role = validated_data.get('role', 'volunteer')
+        validated_data.setdefault('accepted_terms', True)
+        validated_data.setdefault('accepted_privacy_policy', True)
         user = User.objects.create_user(**validated_data, password=password)
         if role == 'admin':
             user.is_staff = True
+            user.is_superuser = True
+            user.save(update_fields=['is_staff', 'is_superuser'])
+        elif role == 'coordinator':
+            user.is_staff = False
             user.save(update_fields=['is_staff'])
         return user
 

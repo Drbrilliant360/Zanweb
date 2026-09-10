@@ -261,7 +261,7 @@ button { font-family: inherit; cursor: pointer; }
 /* Modal */
 .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(10,18,38,0.55); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.open { display: flex; }
-.modal-box { background: var(--white); border-radius: var(--r-lg); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: var(--sh-lg); animation: popIn 0.18s ease; }
+.modal-box { background: var(--white); border-radius: var(--r-lg); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; box-shadow: var(--sh-lg); animation: popIn 0.18s ease; position: relative; z-index: 1; }
 @keyframes popIn { from { opacity:0; transform: scale(0.96);} to {opacity:1; transform: scale(1);} }
 .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--bg-app); position: sticky; top: 0; background: var(--white); z-index: 2; }
 .modal-head h3 { font-size: 1.08rem; font-weight: 800; }
@@ -1085,12 +1085,17 @@ button { font-family: inherit; cursor: pointer; }
             is_published: !!record.is_published
         };
         if (listKey === 'admins') {
-            var names = (record.name || '').trim().split(/\s+/, 2);
+            var parts = (record.name || '').trim().split(/\s+/).filter(Boolean);
             var roles = { 'Super Admin': 'admin', 'Program Lead': 'coordinator', 'Editor': 'coordinator' };
-            return {
-                first_name: names[0] || '', last_name: names[1] || '', email: record.email,
-                role: roles[record.role] || 'coordinator', password: record.password || undefined,
+            var payload = {
+                first_name: parts[0] || '',
+                last_name: parts.slice(1).join(' ') || '',
+                email: (record.email || '').trim().toLowerCase(),
+                role: roles[record.role] || 'coordinator',
             };
+            // Only send password when the admin actually typed one (required on create).
+            if (record.password) payload.password = record.password;
+            return payload;
         }
         return record;
     }
@@ -1375,7 +1380,12 @@ button { font-family: inherit; cursor: pointer; }
         profiles: { title: "Volunteer Profile", fields: [{ k: "name", label: "Name", type: "text" }, { k: "role", label: "Role", type: "text" }, { k: "bio", label: "Bio", type: "textarea", full: true }, { k: "tags", label: "Tags (comma separated)", type: "text", full: true }] },
         quicklinks: { title: "Quick Link", fields: [{ k: "label", label: "Label", type: "text", full: true }, { k: "url", label: "URL", type: "text", full: true }] },
         mobilemoney: { title: "Mobile Money Channel", fields: [{ k: "provider", label: "Provider", type: "text", full: true }, { k: "detail", label: "USSD / Reference Detail", type: "text", full: true }] },
-        admins: { title: "Admin", fields: [{ k: "name", label: "Full Name", type: "text", full: true }, { k: "email", label: "Email", type: "text", full: true }, { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true }, { k: "password", label: "Password (12+ characters; required for new account)", type: "text" }] },
+        admins: { title: "Admin", fields: [
+            { k: "name", label: "Full Name", type: "text", full: true },
+            { k: "email", label: "Email", type: "email", full: true },
+            { k: "role", label: "Role", type: "select", options: ["Super Admin", "Program Lead", "Editor"], full: true },
+            { k: "password", label: "Password (12+ characters; required for new account)", type: "password", full: true, optionalOnEdit: true }
+        ] },
         events: { title: "Event", fields: [
             { k: "title", label: "Event Title", type: "text", full: true },
             { k: "description", label: "Description", type: "textarea", full: true },
@@ -1394,15 +1404,20 @@ button { font-family: inherit; cursor: pointer; }
 
     function openListModal(listKey, editId) {
         const cfg = listConfigs[listKey];
+        if (!cfg) { toast("Unknown form type.", true); return; }
         modalCtx = { listKey, editId: editId || null };
         document.getElementById("formModalTitle").textContent = (editId ? "Edit " : "Add ") + cfg.title;
         dynamicForm.innerHTML = "";
-        const existing = editId ? data[listKey].find(i => i.id === editId) : null;
+        const existing = editId ? (data[listKey] || []).find(i => i.id === editId) : null;
         cfg.fields.forEach(f => {
             const wrap = document.createElement("div");
             wrap.className = "field" + (f.full ? " full" : "");
             const label = document.createElement("label");
-            label.textContent = f.label;
+            label.setAttribute("for", "f-" + f.k);
+            // On edit, password is optional — clarify in the label.
+            label.textContent = (editId && f.optionalOnEdit && f.k === "password")
+                ? "Password (leave blank to keep current)"
+                : f.label;
             wrap.appendChild(label);
             let input;
             if (f.type === "textarea") { input = document.createElement("textarea"); input.rows = 3; }
@@ -1413,13 +1428,15 @@ button { font-family: inherit; cursor: pointer; }
                 input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
             } else if (f.type === "checkbox") {
                 input = document.createElement("input"); input.type = "checkbox"; input.style.width="18px"; input.style.height="18px";
-            } else if (f.type === "date" || f.type === "time" || f.type === "number") {
+            } else if (f.type === "date" || f.type === "time" || f.type === "number" || f.type === "email" || f.type === "password") {
                 input = document.createElement("input"); input.type = f.type;
                 if (f.type === "number") input.min = "0";
-            } else { input = document.createElement("input"); input.type = "text"; }
+                if (f.type === "password") input.autocomplete = "new-password";
+                if (f.type === "email") input.autocomplete = "off";
+            } else { input = document.createElement("input"); input.type = "text"; input.autocomplete = "off"; }
             input.id = "f-" + f.k;
             input.dataset.key = f.k;
-            if (existing && f.type !== "file") {
+            if (existing && f.type !== "file" && f.type !== "password") {
                 if (f.type === "checkbox") input.checked = !!existing[f.k];
                 else input.value = existing[f.k] != null ? existing[f.k] : "";
             } else if (f.type === "checkbox" && !existing) {
@@ -1432,26 +1449,48 @@ button { font-family: inherit; cursor: pointer; }
             dynamicForm.appendChild(wrap);
         });
         formModalBackdrop.classList.add("open");
+        // Focus first field without scrolling the page under the dialog away.
+        setTimeout(function () {
+            var first = dynamicForm.querySelector("input, select, textarea");
+            if (first) try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); }
+        }, 30);
     }
     function closeFormModal() { formModalBackdrop.classList.remove("open"); }
     async function submitFormModal() {
         const { listKey, editId } = modalCtx;
         const cfg = listConfigs[listKey];
+        if (!cfg) return;
         const record = {};
         let valid = true;
+        let missing = [];
         let fileEl = null;
         cfg.fields.forEach(f => {
             const el = document.getElementById("f-" + f.k);
+            if (!el) return;
             if (f.type === "file") { fileEl = el; return; }
             if (f.type === "checkbox") {
                 record[f.k] = el.checked;
-            } else {
-                record[f.k] = el.value.trim();
-                if (!record[f.k] && f.full) valid = false;
+                return;
+            }
+            record[f.k] = (el.value || "").trim();
+            const required = f.full && !(editId && f.optionalOnEdit);
+            if (required && !record[f.k]) {
+                valid = false;
+                missing.push(f.label);
             }
         });
-        if (!valid) { toast("Please fill in the required fields.", true); return; }
+        if (!valid) {
+            toast(missing.length ? ("Please fill: " + missing.join(", ")) : "Please fill in the required fields.", true);
+            return;
+        }
+        if (listKey === "admins" && !editId && (record.password || "").length < 12) {
+            toast("Admin password must be at least 12 characters.", true);
+            return;
+        }
         const endpoint = apiMap[listKey];
+        const saveBtn = document.querySelector("#formModalBackdrop .btn-primary");
+        const prevLabel = saveBtn ? saveBtn.innerHTML : "";
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
         // Try real API if available (requires auth token), otherwise localStorage fallback
         if (endpoint && typeof apiPost !== 'undefined' && typeof apiPatch !== 'undefined') {
             try {
@@ -1472,25 +1511,34 @@ button { font-family: inherit; cursor: pointer; }
                         const idx = data[listKey].findIndex(i => i.id === editId);
                         if (idx !== -1) data[listKey][idx] = Object.assign({}, data[listKey][idx], saved, { id: editId });
                     } else {
-                        saved.id = nextId(data[listKey]);
+                        saved.id = nextId(data[listKey] || []);
                         saved._apiId = resp.data.id;
+                        if (!data[listKey]) data[listKey] = [];
                         data[listKey].push(saved);
                     }
-                    persist();
+                    // Admins/users: re-sync from server so role filters stay accurate.
+                    if (listKey === 'admins' || listKey === 'users') {
+                        try { await loadAdminFromAPI(); } catch (e) { /* keep local row */ }
+                    } else {
+                        persist();
+                    }
                     closeFormModal();
                     renderAll();
                     toast(editId ? "Item updated (saved to server)." : "Item added (saved to server).");
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = prevLabel; }
                     return;
                 } else if (resp && !resp.ok) {
-                    const msg = (resp.data && (resp.data.detail || JSON.stringify(resp.data))) || 'Server error';
+                    const msg = formatApiError(resp.data) || 'Server error';
                     toast('Server: ' + msg, true);
                     // Keep the dialog open so the administrator can correct the
                     // input instead of losing it to a misleading local fallback.
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = prevLabel; }
                     return;
                 }
             } catch(apiErr) {
                 console.warn('API save failed', apiErr);
                 toast('Could not save to the server. Check your connection and sign in again.', true);
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = prevLabel; }
                 return;
             }
         }
@@ -1506,6 +1554,20 @@ button { font-family: inherit; cursor: pointer; }
         closeFormModal();
         renderAll();
         toast(editId ? "Item updated (local)." : "Item added (local).");
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = prevLabel; }
+    }
+    function formatApiError(data) {
+        if (!data) return '';
+        if (typeof data === 'string') return data;
+        if (data.detail) return typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+        try {
+            return Object.keys(data).map(function (k) {
+                var v = data[k];
+                if (Array.isArray(v)) return k + ': ' + v.join(' ');
+                if (typeof v === 'object') return k + ': ' + JSON.stringify(v);
+                return k + ': ' + v;
+            }).join(' · ');
+        } catch (e) { return JSON.stringify(data); }
     }
     window.openListModal = openListModal;
     window.closeFormModal = closeFormModal;
@@ -2111,7 +2173,12 @@ button { font-family: inherit; cursor: pointer; }
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") { closeFormModal(); closeConfirmModal(); closeMsgModal(); }
     });
-    [formModalBackdrop, confirmBackdrop, msgBackdrop].forEach(bd => {
+    // Confirm / message dialogs may close on backdrop click.
+    // The ADD/EDIT form modal must NOT — native <select> dropdowns render outside
+    // the dialog box, so choosing a Category/Status option used to hit the backdrop
+    // and immediately close the popup (looked like "pops up and disappears").
+    [confirmBackdrop, msgBackdrop].forEach(bd => {
+        if (!bd) return;
         bd.addEventListener("click", e => { if (e.target === bd) bd.classList.remove("open"); });
         const box = bd.querySelector('.modal-box');
         if (box) box.addEventListener('click', e => e.stopPropagation());
