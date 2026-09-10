@@ -106,7 +106,8 @@ async function apiDelete(path) {
 }
 
 async function apiPut(path, body) {
-  return apiFetch(path, { method: 'PUT', body: JSON.stringify(body) });
+  const res = await apiFetch(path, { method: 'PUT', body: JSON.stringify(body) });
+  return readJsonResponse(res);
 }
 
 (function () {
