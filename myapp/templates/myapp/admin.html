@@ -1063,7 +1063,14 @@ button { font-family: inherit; cursor: pointer; }
     function toApiPayload(listKey, record) {
         // Translate admin form fields to DRF serializer fields per model
         if (listKey === 'partners') return { name: record.name, description: record.name };
-        if (listKey === 'programs') return { name: record.title, short_description: record.desc||'', description: record.desc||'', category: 'leadership_volunteerism' };
+        if (listKey === 'programs') return {
+            name: record.title,
+            short_description: record.desc || '',
+            description: record.desc || '',
+            category: record.category || 'leadership_volunteerism',
+            status: record.status || 'planning',
+            is_published: !!record.is_published
+        };
         if (listKey === 'gallery') return { title: record.caption||'Gallery image', caption: record.caption||'', category: 'yvf' };
         if (listKey === 'stories') return { title: record.title, excerpt: record.desc||'', content: record.desc||'' };
         if (listKey === 'counters' || listKey === 'stats') return { label: record.label||record.desc||record.title||'', value: record.value||record.year||'', icon: '' };
@@ -1089,7 +1096,7 @@ button { font-family: inherit; cursor: pointer; }
     }
     function fromApiRecord(listKey, apiRec) {
         if (listKey === 'partners') return { id: apiRec.id, name: apiRec.name };
-        if (listKey === 'programs') return { id: apiRec.id, title: apiRec.name, tag: apiRec.category||'', desc: apiRec.description||apiRec.short_description||'', bullets: '', ctaText: '', ctaLink: '' };
+        if (listKey === 'programs') return { id: apiRec.id, _apiId: apiRec.id, title: apiRec.name, tag: apiRec.category||'', category: apiRec.category||'leadership_volunteerism', status: apiRec.status||'planning', is_published: !!apiRec.is_published, desc: apiRec.description||apiRec.short_description||'' };
         if (listKey === 'gallery') return { id: apiRec.id, caption: apiRec.caption||apiRec.title||'' };
         if (listKey === 'stories') return { id: apiRec.id, title: apiRec.title, tag: '', desc: apiRec.excerpt||apiRec.content||'' };
         if (listKey === 'counters' || listKey === 'stats') return { id: apiRec.id, label: apiRec.label, value: apiRec.value, desc: apiRec.label };
@@ -1356,7 +1363,13 @@ button { font-family: inherit; cursor: pointer; }
         partners: { title: "Partner", fields: [{ k: "name", label: "Organization Name", type: "text", full: true }] },
         pillars: { title: "Core Pillar", fields: [{ k: "title", label: "Title", type: "text", full: true }, { k: "desc", label: "Description", type: "textarea", full: true }] },
         counters: { title: "Footprint Counter", fields: [{ k: "value", label: "Value (e.g. 500+)", type: "text" }, { k: "label", label: "Label", type: "text" }] },
-        programs: { title: "Program", fields: [{ k: "title", label: "Program Title", type: "text", full: true }, { k: "tag", label: "Category Tag", type: "text" }, { k: "ctaText", label: "Button Text", type: "text" }, { k: "desc", label: "Description", type: "textarea", full: true }, { k: "bullets", label: "Highlights (one per line)", type: "textarea", full: true }, { k: "ctaLink", label: "Apply / Info Link", type: "text", full: true }] },
+        programs: { title: "Program", fields: [
+            { k: "title", label: "Program Title", type: "text", full: true },
+            { k: "category", label: "Category", type: "select", options: ["leadership_volunteerism", "career_readiness", "community_impact", "digital_skills", "health_wellbeing"], full: true },
+            { k: "status", label: "Status", type: "select", options: ["planning", "in_progress", "active", "completed", "paused"], full: true },
+            { k: "desc", label: "Description", type: "textarea", full: true },
+            { k: "is_published", label: "Publish immediately", type: "checkbox", full: true }
+        ] },
         gallery: { title: "Gallery Photo", fields: [{ k: "caption", label: "Caption", type: "text", full: true }, { k: "_upload", label: "Photo", type: "file", full: true }] },
         stories: { title: "Volunteer Story", fields: [{ k: "title", label: "Story Title", type: "text", full: true }, { k: "tag", label: "Tag", type: "text" }, { k: "desc", label: "Summary", type: "textarea", full: true }] },
         profiles: { title: "Volunteer Profile", fields: [{ k: "name", label: "Name", type: "text" }, { k: "role", label: "Role", type: "text" }, { k: "bio", label: "Bio", type: "textarea", full: true }, { k: "tags", label: "Tags (comma separated)", type: "text", full: true }] },
@@ -1471,10 +1484,14 @@ button { font-family: inherit; cursor: pointer; }
                 } else if (resp && !resp.ok) {
                     const msg = (resp.data && (resp.data.detail || JSON.stringify(resp.data))) || 'Server error';
                     toast('Server: ' + msg, true);
-                    // fall through to local save so UI still responds
+                    // Keep the dialog open so the administrator can correct the
+                    // input instead of losing it to a misleading local fallback.
+                    return;
                 }
             } catch(apiErr) {
-                console.warn('API save failed, using local fallback', apiErr);
+                console.warn('API save failed', apiErr);
+                toast('Could not save to the server. Check your connection and sign in again.', true);
+                return;
             }
         }
         // Local fallback (offline / no endpoint)

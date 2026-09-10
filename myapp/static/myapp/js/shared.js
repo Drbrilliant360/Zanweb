@@ -63,7 +63,9 @@ async function apiFetch(path, options = {}) {
     });
     if (refreshRes.ok) {
       const data = await refreshRes.json();
-      setTokens(data.access, refresh);
+      // Refresh-token rotation may return a replacement token. Keeping the old
+      // token here logs an administrator out on their next save attempt.
+      setTokens(data.access, data.refresh || refresh);
       headers['Authorization'] = 'Bearer ' + data.access;
       const retryRes = await fetch(url, { ...options, headers });
       return retryRes;
