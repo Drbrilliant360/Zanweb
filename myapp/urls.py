@@ -21,6 +21,8 @@ urlpatterns = [
     
     path('request/', views.request_view, name='request'),                    # http://127.0.0.1:8000/request/
     path('stories/', views.stories_view, name='stories'),                    # http://127.0.0.1:8000/stories/
+    path('stories/share/', views.sharestory_view, name='sharestory'),        # http://127.0.0.1:8000/stories/share/
+    path('stories/cosmas-msoka/', views.cosmasdetail_view, name='cosmasdetail'),
     path('terms/', views.terms_view, name='terms'),                          # http://127.0.0.1:8000/terms/
     
     # 🟢 Set to /volunteer/ and linked cleanly to volunteer_view

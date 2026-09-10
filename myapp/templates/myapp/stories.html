@@ -37,10 +37,72 @@
 
         .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
 
+        /* Page header / hero */
+        .stories-hero {
+            background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 100%);
+            padding: 90px 20px 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .stories-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(245,195,0,0.14) 0%, rgba(245,195,0,0) 55%);
+            pointer-events: none;
+        }
+        .stories-hero .eyebrow { color: var(--gold); }
+        .stories-hero .section-h { color: var(--white); }
+        .stories-hero .section-sub { color: rgba(255,255,255,0.78); }
+
         .sec-head { text-align: center; margin-bottom: 48px; }
         .eyebrow { font-size: 0.75rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: var(--crimson); margin-bottom: 10px; }
         .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; color: var(--navy-deep); text-transform: uppercase; line-height: 1; }
         .section-sub { max-width: 580px; margin: 16px auto 0; font-size: 0.98rem; color: var(--ink2); }
+
+        /* Filter tabs */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: -34px auto 46px;
+            max-width: 900px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 3;
+        }
+        .filter-btn {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: var(--navy);
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 11px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(15, 26, 54, 0.08);
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+        .filter-btn:hover { transform: translateY(-2px); }
+        .filter-btn.active {
+            background: var(--crimson);
+            border-color: var(--crimson);
+            color: var(--white);
+        }
+
+        .results-count {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--ink2);
+            margin-bottom: 26px;
+        }
+        .results-count strong { color: var(--navy-deep); }
 
         /* Stories grid */
         .stories-grid {
@@ -65,12 +127,13 @@
             border-radius: 14px;
             overflow: hidden;
             box-shadow: 0 4px 18px rgba(15, 26, 54, 0.06);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.25s ease;
         }
         .story-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 20px 38px rgba(15, 26, 54, 0.14);
         }
+        .story-card.hidden { display: none; }
 
         .image-wrapper {
             position: relative;
@@ -123,6 +186,15 @@
 
         .story-body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
 
+        .story-name {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: var(--crimson);
+            margin-bottom: 8px;
+        }
+
         .story-title {
             font-family: 'Barlow Condensed', sans-serif;
             font-size: 1.4rem;
@@ -155,96 +227,192 @@
         .story-card:hover .story-link { color: var(--crimson); }
         .story-card:hover .story-link i { transform: translateX(4px); }
 
-        .action-container {
+        /* Empty state */
+        .empty-state {
+            display: none;
             text-align: center;
-            margin-top: 16px;
+            padding: 60px 20px;
+            color: var(--ink2);
+        }
+        .empty-state i { font-size: 2rem; color: var(--crimson); margin-bottom: 14px; display: block; }
+        .empty-state.show { display: block; }
+
+        /* CTA banner */
+        .cta-banner {
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+            border-radius: 18px;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        .cta-banner h3 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--white);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .cta-banner p {
+            color: rgba(255,255,255,0.78);
+            max-width: 480px;
+            margin: 0 auto 24px;
+            font-size: 0.95rem;
         }
         .btn-more {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: var(--navy);
-            color: var(--white);
+            background: var(--gold);
+            color: var(--navy-deep);
             text-decoration: none;
             font-size: 0.85rem;
-            font-weight: 700;
+            font-weight: 800;
             padding: 14px 30px;
             border-radius: 50px;
             letter-spacing: 0.4px;
-            box-shadow: 0 8px 20px rgba(28, 46, 94, 0.18);
-            transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0, 0.2);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
         .btn-more:hover {
-            background: var(--crimson);
             transform: translateY(-3px);
-            box-shadow: 0 12px 26px rgba(165, 28, 48, 0.25);
+            box-shadow: 0 12px 26px rgba(0,0,0, 0.28);
         }
     </style>
 </head>
 <body>
     <main>
-        <div class="container">
-            <div class="sec-head">
-                <p class="eyebrow">Real People, Real Impact</p>
-                <h2 class="section-h">Volunteer Stories</h2>
-                <p class="section-sub">Meet the young changemakers turning training, mentorship, and community outreach into lasting impact across Zanzibar and Tanzania.</p>
+
+        <!-- Hero -->
+        <div class="stories-hero">
+            <p class="eyebrow">Real People, Real Impact</p>
+            <h2 class="section-h">Volunteer Stories</h2>
+            <p class="section-sub">Meet the young changemakers turning training, mentorship, and community outreach into lasting impact across Zanzibar and Tanzania.</p>
+        </div>
+
+        <div class="container" style="margin-top: 0;">
+
+            <!-- Filter tabs -->
+            <div class="filter-bar" id="filterBar">
+                <button class="filter-btn active" data-filter="all">All Stories</button>
+                <button class="filter-btn" data-filter="Youth Leadership">Youth Leadership</button>
             </div>
 
-            <div class="stories-grid">
+            <p class="results-count" id="resultsCount"><strong id="resultsNum">1</strong> story</p>
 
-                <!-- Card 1 -->
-                <div class="story-card">
+            <div class="stories-grid" id="storiesGrid">
+                <!-- Cosmas featured story (static fallback) -->
+                <div class="story-card" data-category="Youth Leadership" data-static="1">
                     <div class="image-wrapper">
                         <span class="tag-badge">Youth Leadership</span>
                         <span class="quote-mark">&rdquo;</span>
-                        <img src="{% static 'myapp/DSC_2216_BinSeif.jpg.jpeg' %}" alt="Volunteer story photo — youth leadership">
+                        <img src="{% static 'myapp/img/WAX_7020_BinSeif_Original.jpg.jpeg' %}" alt="Volunteer story photo — Cosmas Msoka">
                     </div>
                     <div class="story-body">
-                        <h3 class="story-title">From First Training to Youth Trainer</h3>
-                        <p class="story-desc">What started as a single leadership bootcamp turned into a calling. Today this volunteer helps design and lead the very trainings that once changed their own path.</p>
-                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
+                        <p class="story-name">Cosmas Msoka, YVF Cohort 3</p>
+                        <h3 class="story-title">A Full-Circle Journey Back to YVF</h3>
+                        <p class="story-desc">"Volunteering is not just about giving your time — it is about discovering your potential, building meaningful connections, and creating opportunities to serve others."</p>
+                        <a href="{% url 'cosmasdetail' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Card 2 -->
-                <div class="story-card">
-                    <div class="image-wrapper">
-                        <span class="tag-badge">Community Outreach</span>
-                        <span class="quote-mark">&rdquo;</span>
-                        <img src="{% static 'myapp/DSC_1618_BinSeif.jpg.jpeg' %}" alt="Volunteer story photo — community outreach">
-                    </div>
-                    <div class="story-body">
-                        <h3 class="story-title">Building Confidence Through Community Outreach</h3>
-                        <p class="story-desc">Door-to-door awareness walks and weekend cleanups taught this volunteer more about leadership than any classroom could — and gave them the confidence to speak up for their community.</p>
-                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="story-card">
-                    <div class="image-wrapper">
-                        <span class="tag-badge">Digital Skills</span>
-                        <span class="quote-mark">&rdquo;</span>
-                        <img src="{% static 'myapp/WAX_7020_BinSeif_Original.jpg.jpeg' %}" alt="Volunteer story photo — digital skills training">
-                    </div>
-                    <div class="story-body">
-                        <h3 class="story-title">Turning Passion Into Purpose With Digital Skills</h3>
-                        <p class="story-desc">After completing the Digital Skills Training cohort, this volunteer now mentors younger participants — proof that one opportunity can ripple through an entire community.</p>
-                        <a href="{% url 'stories' %}" class="story-link">Read Full Story <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
             </div>
 
-            <div class="action-container">
-                <a href="{% url 'stories' %}" class="btn-more">
-                    View All Stories <i class="fas fa-arrow-right"></i>
-                </a>
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-magnifying-glass"></i>
+                No stories found in this category yet — check back soon.
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-banner">
+                <h3>Have a Story of Your Own?</h3>
+                <p>If you've volunteered with us and want to share how it changed your path, we'd love to feature your story here.</p>
+                <a href="{% url 'sharestory' %}" class="btn-more">Share Your Story <i class="fas fa-arrow-right"></i></a>
             </div>
 
         </div>
     </main>
 
     <script src="{% static 'myapp/js/shared.js' %}"></script>
+    <script>
+        (function () {
+            const grid = document.getElementById('storiesGrid');
+            const resultsNum = document.getElementById('resultsNum');
+            const emptyState = document.getElementById('emptyState');
+            const buttons = document.querySelectorAll('.filter-btn');
+            const DEFAULT_IMG = "{% static 'myapp/img/WAX_7020_BinSeif_Original.jpg.jpeg' %}";
+
+            function escapeHtml(str) {
+                return String(str || '').replace(/[&<>"']/g, function (c) {
+                    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+                });
+            }
+
+            function categoryFromStory(s) {
+                const hay = ((s.author_role || '') + ' ' + (s.title || '') + ' ' + (s.excerpt || '')).toLowerCase();
+                if (hay.includes('environment')) return 'Environmental Action';
+                if (hay.includes('digital') || hay.includes('tech')) return 'Digital Skills';
+                if (hay.includes('health')) return 'Health & Wellness';
+                if (hay.includes('community') || hay.includes('outreach')) return 'Community Outreach';
+                return 'Youth Leadership';
+            }
+
+            function applyFilter(filter) {
+                const cards = grid.querySelectorAll('.story-card');
+                let visible = 0;
+                cards.forEach(card => {
+                    const match = filter === 'all' || card.dataset.category === filter;
+                    card.classList.toggle('hidden', !match);
+                    if (match) visible++;
+                });
+                resultsNum.textContent = visible;
+                emptyState.classList.toggle('show', visible === 0);
+            }
+
+            function wireFilters() {
+                buttons.forEach(btn => {
+                    btn.onclick = () => {
+                        buttons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        applyFilter(btn.dataset.filter);
+                    };
+                });
+            }
+
+            function appendApiStory(s) {
+                const cat = categoryFromStory(s);
+                const img = s.cover_image || DEFAULT_IMG;
+                const name = [s.author_name, s.author_role].filter(Boolean).join(', ') || 'Volunteer';
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                card.dataset.category = cat;
+                card.innerHTML =
+                    '<div class="image-wrapper">' +
+                        '<span class="tag-badge">' + escapeHtml(cat) + '</span>' +
+                        '<span class="quote-mark">&rdquo;</span>' +
+                        '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(s.title) + '">' +
+                    '</div>' +
+                    '<div class="story-body">' +
+                        '<p class="story-name">' + escapeHtml(name) + '</p>' +
+                        '<h3 class="story-title">' + escapeHtml(s.title) + '</h3>' +
+                        '<p class="story-desc">' + escapeHtml(s.excerpt || (s.content || '').slice(0, 180)) + '</p>' +
+                    '</div>';
+                grid.appendChild(card);
+            }
+
+            async function loadStories() {
+                try {
+                    const res = await fetch('/api/stories/');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const list = Array.isArray(data) ? data : (data.results || []);
+                    list.forEach(appendApiStory);
+                } catch (_) { /* keep static Cosmas card */ }
+                wireFilters();
+                applyFilter('all');
+            }
+
+            loadStories();
+        })();
+    </script>
 </body>
 </html>

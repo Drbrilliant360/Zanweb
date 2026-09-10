@@ -50,6 +50,12 @@ def request_view(request):
 def stories_view(request):
     return render(request, 'myapp/stories.html')
 
+def sharestory_view(request):
+    return render(request, 'myapp/sharestory.html')
+
+def cosmasdetail_view(request):
+    return render(request, 'myapp/cosmasdetail.html')
+
 def terms_view(request):
     return render(request, 'myapp/terms.html')
 

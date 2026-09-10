@@ -88,10 +88,27 @@ class StoryViewSet(viewsets.ModelViewSet):
     serializer_class = StorySerializer
     permission_classes = [IsCoordinatorOrAdminOrReadOnly]
 
+    def get_permissions(self):
+        # Public story submissions (Share Your Story) — create only; stay unpublished until reviewed.
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        return super().get_permissions()
+
     def get_queryset(self):
         if self.request.method in permissions.SAFE_METHODS:
             return Story.objects.filter(is_published=True)
         return Story.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        is_staff_publisher = (
+            user.is_authenticated
+            and (getattr(user, 'is_coordinator', False) or getattr(user, 'is_admin_role', False))
+        )
+        if is_staff_publisher:
+            serializer.save()
+        else:
+            serializer.save(is_published=False)
 
 
 class GalleryImageViewSet(viewsets.ModelViewSet):

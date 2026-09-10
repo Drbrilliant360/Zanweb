@@ -65,11 +65,6 @@
         .field-grid .span-2 { grid-column: 1 / -1; }
         @media (max-width: 560px) {
             .field-grid { grid-template-columns: 1fr; }
-            .page-wrapper { padding: 24px 16px; }
-            .page-card { padding: 28px 18px; }
-            .m-title { font-size: 1.75rem; }
-            .btn-submit { min-height: 48px; }
-            .validation-box ul { columns: 1; }
         }
 
         .form-block { text-align: left; background-color: var(--form-bg); padding: 12px 16px; border-radius: 6px; }
@@ -80,9 +75,90 @@
         .field-txt { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: #333; padding: 2px 0; outline: none; }
         .field-txt::placeholder { color: #8DA9C4; }
 
-        .field-select { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: #444; padding: 2px 0; outline: none; cursor: pointer; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+        /* The real <select> stays in the DOM (so the form still submits its value)
+           but is visually hidden — the visible control below is fully custom. */
         .select-wrapper { position: relative; }
-        .select-wrapper::after { content: "▼"; font-size: 0.65rem; color: #556; position: absolute; right: 4px; top: 4px; pointer-events: none; }
+        select.field-select.native-select {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .select-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: #444;
+            padding: 6px 8px 6px 0;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .select-trigger:hover { background-color: rgba(28, 46, 94, 0.05); }
+        .select-trigger:focus,
+        .select-trigger.open {
+            outline: none;
+            border-color: var(--navy);
+            background-color: var(--white);
+            box-shadow: 0 0 0 2px rgba(28, 46, 94, 0.12);
+        }
+        .select-trigger .trigger-text.placeholder { color: #8DA9C4; }
+        .select-trigger .chevron {
+            font-size: 0.6rem;
+            color: var(--navy);
+            transition: transform 0.15s ease, color 0.15s ease;
+            flex-shrink: 0;
+        }
+        .select-trigger.open .chevron { transform: rotate(180deg); color: var(--crimson); }
+
+        .select-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 12px 28px rgba(28, 46, 94, 0.18);
+            list-style: none;
+            margin: 0;
+            padding: 6px;
+            max-height: 230px;
+            overflow-y: auto;
+            z-index: 30;
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .select-panel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+        .select-option {
+            padding: 9px 12px;
+            font-size: 0.88rem;
+            color: var(--navy-deep);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.12s ease, color 0.12s ease;
+        }
+        .select-option:hover,
+        .select-option.active { background-color: var(--form-bg); color: var(--navy); }
+        .select-option.selected {
+            background-color: var(--navy);
+            color: var(--white);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        .select-option.selected::after { content: "✓"; }
 
         .consent-block { background-color: var(--pink-bg); padding: 14px 16px; margin-bottom: 10px; text-align: left; display: flex; align-items: flex-start; gap: 12px; border-radius: 6px; }
         .consent-block:last-child { margin-bottom: 0; }
@@ -127,6 +203,16 @@
             margin-bottom: 16px;
             text-align: left;
         }
+
+        .field-hint {
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-hint.show { display: block; }
+        .field-hint.error { color: var(--crimson); }
+        .field-hint.success { color: #2E8B57; }
     </style>
 </head>
 <body>
@@ -139,8 +225,14 @@
         <p class="page-sub">Join Zanchangemakers and start connecting with volunteer opportunities across Zanzibar and Tanzania.</p>
 
         <div class="form-card">
-        <form id="registrationForm">
-            <div id="regError" class="m-err" style="display:none"></div>
+        <form id="registrationForm" method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="m-err">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
 
             <!-- Personal details -->
             <div class="form-section">
@@ -269,10 +361,17 @@
             <!-- Account -->
             <div class="form-section">
                 <h2 class="form-section-title">Account</h2>
-                <div class="form-block">
-                    <label>Account Password<span class="req">*</span></label>
-                    <input type="password" id="password" name="password" class="field-txt" placeholder="Set your security password" required oninput="validateForm()">
+                <div class="field-grid">
+                    <div class="form-block">
+                        <label>Account Password<span class="req">*</span></label>
+                        <input type="password" id="password" name="password" class="field-txt" placeholder="Set your security password" required oninput="validateForm()">
+                    </div>
+                    <div class="form-block">
+                        <label>Confirm Password<span class="req">*</span></label>
+                        <input type="password" id="confirmPassword" name="confirm_password" class="field-txt" placeholder="Re-enter your password" required oninput="validateForm()">
+                    </div>
                 </div>
+                <p id="passwordHint" class="field-hint">Passwords do not match</p>
             </div>
 
             <!-- Consent -->
@@ -295,30 +394,172 @@
 
     <script>
         function validateForm() {
-            const form = document.getElementById('registrationForm');
-            const btn = document.getElementById('submitBtn');
-            if (!form || !btn) return;
-            btn.disabled = !form.checkValidity();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const street = document.getElementById('street').value.trim();
+            const town = document.getElementById('town').value.trim();
+            const country = document.getElementById('country').value.trim();
+            const region = document.getElementById('region').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const passwordHint = document.getElementById('passwordHint');
+
+            const passwordsMatch = password && confirmPassword && password === confirmPassword;
+            if (confirmPassword.length > 0 && !passwordsMatch) {
+                passwordHint.textContent = 'Passwords do not match';
+                passwordHint.classList.remove('success');
+                passwordHint.classList.add('show', 'error');
+            } else if (passwordsMatch) {
+                passwordHint.textContent = 'Passwords match';
+                passwordHint.classList.remove('error');
+                passwordHint.classList.add('show', 'success');
+            } else {
+                passwordHint.classList.remove('show', 'error', 'success');
+            }
+
+            const ageGroup = document.getElementById('ageGroup').value;
+            const nationality = document.getElementById('nationality').value.trim();
+            const englishLevel = document.getElementById('englishLevel').value;
+            const swahiliLevel = document.getElementById('swahiliLevel').value;
+            const interest = document.getElementById('interest').value;
+            const volunteeredBefore = document.getElementById('volunteeredBefore').value;
+
+            const termsCheck = document.getElementById('termsCheck').checked;
+
+            const submitBtn = document.getElementById('submitBtn');
+
+            const isValid = (
+                firstName && lastName && street && town && country && region &&
+                email.includes('@') && phone && password && passwordsMatch &&
+                ageGroup && nationality && englishLevel && swahiliLevel &&
+                interest && volunteeredBefore &&
+                termsCheck
+            );
+
+            submitBtn.style.backgroundColor = isValid ? 'var(--navy)' : '#555';
+            return isValid;
         }
 
+        // ---- Custom dropdown enhancer ----
+        
+        function enhanceSelect(select) {
+            const wrapper = select.closest('.select-wrapper');
+            select.classList.add('native-select');
+
+            const trigger = document.createElement('div');
+            trigger.className = 'select-trigger';
+            trigger.tabIndex = 0;
+            trigger.setAttribute('role', 'combobox');
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.setAttribute('aria-expanded', 'false');
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'trigger-text';
+            const chevron = document.createElement('span');
+            chevron.className = 'chevron';
+            chevron.textContent = '▼';
+            trigger.append(textSpan, chevron);
+
+            const panel = document.createElement('ul');
+            panel.className = 'select-panel';
+            panel.setAttribute('role', 'listbox');
+
+            const optionEls = [];
+            Array.from(select.options).forEach((opt) => {
+                if (opt.disabled) return; // placeholder isn't a pickable option
+                const li = document.createElement('li');
+                li.className = 'select-option';
+                li.setAttribute('role', 'option');
+                li.dataset.value = opt.value;
+                li.textContent = opt.textContent;
+                if (opt.selected) li.classList.add('selected');
+                li.addEventListener('click', () => {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    optionEls.forEach((o) => o.classList.remove('selected'));
+                    li.classList.add('selected');
+                    syncTriggerText();
+                    closePanel();
+                });
+                panel.appendChild(li);
+                optionEls.push(li);
+            });
+
+            function syncTriggerText() {
+                const current = select.options[select.selectedIndex];
+                const isPlaceholder = !current || current.disabled || current.value === '';
+                textSpan.textContent = current ? current.textContent : '';
+                textSpan.classList.toggle('placeholder', isPlaceholder);
+            }
+            syncTriggerText();
+
+            function openPanel() {
+                panel.classList.add('open');
+                trigger.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+                document.addEventListener('click', onDocClick);
+            }
+            function closePanel() {
+                panel.classList.remove('open');
+                trigger.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+                document.removeEventListener('click', onDocClick);
+            }
+            function onDocClick(e) {
+                if (!wrapper.contains(e.target)) closePanel();
+            }
+
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                panel.classList.contains('open') ? closePanel() : openPanel();
+            });
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    panel.classList.contains('open') ? closePanel() : openPanel();
+                } else if (e.key === 'Escape') {
+                    closePanel();
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (!panel.classList.contains('open')) { openPanel(); return; }
+                    const idx = optionEls.findIndex((o) => o.classList.contains('selected'));
+                    const next = e.key === 'ArrowDown'
+                        ? Math.min(idx + 1, optionEls.length - 1)
+                        : Math.max(idx - 1, 0);
+                    optionEls[next].click();
+                }
+            });
+
+            wrapper.append(trigger, panel);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('select.field-select').forEach(enhanceSelect);
+        });
+
+        // Submit to Django auth API (JWT) — not a classic form POST.
         document.getElementById('registrationForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const errEl = document.getElementById('regError');
-            errEl.style.display = 'none';
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true; btn.textContent = 'Creating Account...';
+            let banner = document.getElementById('formErrorBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'formErrorBanner';
+                banner.className = 'm-err';
+                this.insertBefore(banner, this.firstChild);
+            }
+            if (!validateForm()) {
+                banner.textContent = 'Please complete all required fields before submitting.';
+                banner.style.display = 'block';
+                return;
+            }
 
-            const interestMap = {
-                'Community Development': 'community_development',
-                'Youth Mentorship': 'youth_mentorship',
-                'Environmental Action': 'environmental_action',
-                'Digital Skills Training': 'digital_skills',
-            };
-            const ageMap = {
-                '16-18': '16_18', '19-25': '19_25', '26-35': '26_35', '36+': '36_plus',
-            };
-            const engMap = { 'Basic': 'basic', 'Intermediate': 'intermediate', 'Fluent': 'fluent' };
-            const swahiliMap = engMap;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            const prev = submitBtn.textContent;
+            submitBtn.textContent = 'Creating account…';
+            banner.style.display = 'none';
 
             const payload = {
                 first_name: document.getElementById('firstName').value.trim(),
@@ -329,41 +570,52 @@
                 town: document.getElementById('town').value.trim(),
                 country: document.getElementById('country').value.trim(),
                 region: document.getElementById('region').value.trim(),
-                gender: document.getElementById('gender').value.toLowerCase() || '',
-                age_group: ageMap[document.getElementById('ageGroup').value] || '',
+                gender: document.getElementById('gender').value || '',
+                age_group: document.getElementById('ageGroup').value,
                 nationality: document.getElementById('nationality').value.trim(),
-                english_level: engMap[document.getElementById('englishLevel').value] || '',
-                swahili_level: swahiliMap[document.getElementById('swahiliLevel').value] || '',
-                interest_area: interestMap[document.getElementById('interest').value] || '',
+                english_level: document.getElementById('englishLevel').value,
+                swahili_level: document.getElementById('swahiliLevel').value,
+                interest_area: document.getElementById('interest').value,
                 volunteered_before: document.getElementById('volunteeredBefore').value === 'Yes',
                 password: document.getElementById('password').value,
-                password2: document.getElementById('password').value,
+                password2: document.getElementById('confirmPassword').value,
                 accepted_terms: document.getElementById('termsCheck').checked,
-                accepted_privacy_policy: true,
+                accepted_privacy_policy: document.getElementById('termsCheck').checked,
             };
 
             try {
                 const res = await fetch('/api/auth/register/', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                const data = await res.json();
+                const data = await res.json().catch(() => ({}));
                 if (res.ok) {
-                    setTokens(data.access, data.refresh);
-                    window.location.href = '/dash/';
-                } else {
-                    const msgs = Object.values(data).flat().join('. ');
-                    errEl.textContent = msgs || 'Registration failed. Please check your inputs.';
-                    errEl.style.display = 'block';
+                    if (typeof setTokens === 'function') {
+                        setTokens(data.access, data.refresh, data.user);
+                    }
+                    window.location.href = (typeof getPostLoginRedirect === 'function')
+                        ? getPostLoginRedirect(data.user)
+                        : '/dash/';
+                    return;
                 }
-            } catch (e) {
-                errEl.textContent = 'Network error. Please try again.';
-                errEl.style.display = 'block';
+                const firstErr = data.detail
+                    || (data.email && data.email[0])
+                    || (data.password2 && data.password2[0])
+                    || (data.non_field_errors && data.non_field_errors[0])
+                    || Object.values(data).flat().find(Boolean)
+                    || 'Registration failed. Please try again.';
+                banner.textContent = firstErr;
+                banner.style.display = 'block';
+            } catch (err) {
+                banner.textContent = 'Network error — please try again.';
+                banner.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = prev;
             }
-            btn.disabled = false; btn.textContent = 'Create Account';
         });
     </script>
-    <script id="django-urls-data" type="application/json">{"home": "/", "about": "/about/", "programs": "/programs/", "volunteer": "/volunteer/", "gallery": "/gallery/", "stories": "/stories/", "contact": "/contact/", "register": "/register/", "login": "/login/", "donate": "/donate/"}</script>
     <script src="{% static 'myapp/js/shared.js' %}"></script>
 </body>
 </html>
