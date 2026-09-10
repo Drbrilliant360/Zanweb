@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" href="{% static 'myapp/img/head logo.png' %}" />
+
+    <title>Cosmas Msoka — Volunteer Stories</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --white: #ffffff;
+            --border: rgba(28, 46, 94, 0.09);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg2);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .narrow { max-width: 760px; margin: 0 auto; }
+
+        /* Breadcrumb */
+        .breadcrumb-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 20px;
+        }
+        .breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.82rem;
+            color: var(--ink2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .breadcrumb a { color: var(--ink2); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--crimson); }
+        .breadcrumb .current { color: var(--navy-deep); font-weight: 600; }
+        .breadcrumb i { font-size: 0.65rem; opacity: 0.6; }
+
+        /* Hero */
+        .story-hero {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 21 / 9;
+            max-height: 480px;
+            overflow: hidden;
+        }
+        .story-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .story-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15,26,54,0.88) 0%, rgba(15,26,54,0.25) 55%, rgba(15,26,54,0.05) 100%);
+        }
+        .hero-content {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 50px 20px 40px;
+            text-align: center;
+            z-index: 2;
+        }
+        .hero-content .tag-badge {
+            display: inline-block;
+            background-color: var(--crimson);
+            color: var(--white);
+            padding: 6px 14px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .hero-content h1 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(2.1rem, 5vw, 3.2rem);
+            font-weight: 900;
+            color: var(--white);
+            text-transform: uppercase;
+            line-height: 1.05;
+            max-width: 780px;
+            margin: 0 auto 14px;
+        }
+        .hero-meta {
+            color: rgba(255,255,255,0.82);
+            font-size: 0.9rem;
+        }
+
+        /* Article body */
+        .story-content { padding: 60px 20px 20px; }
+
+        .qa-block { margin-bottom: 44px; }
+        .qa-block:last-of-type { margin-bottom: 0; }
+
+        .qa-question {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--navy-deep);
+            margin-bottom: 14px;
+            line-height: 1.3;
+        }
+        .qa-question .q-mark {
+            font-family: Georgia, serif;
+            color: var(--crimson);
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+
+        .qa-answer {
+            font-size: 1rem;
+            color: var(--ink2);
+            line-height: 1.85;
+            padding-left: 26px;
+            border-left: 3px solid var(--border);
+        }
+
+        .thank-you-note {
+            margin-top: 50px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+            border-radius: 14px;
+            padding: 30px 32px;
+            text-align: center;
+        }
+        .thank-you-note p {
+            color: var(--white);
+            font-size: 1.05rem;
+            font-weight: 500;
+            font-style: italic;
+            line-height: 1.7;
+        }
+
+        /* Author card */
+        .author-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin: 44px 0 0;
+        }
+        .author-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--navy);
+        }
+        .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .author-name { font-weight: 700; color: var(--navy-deep); font-size: 0.95rem; }
+        .author-role { font-size: 0.82rem; color: var(--ink2); }
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--navy);
+            text-decoration: none;
+            margin: 40px 0 0;
+        }
+        .back-link:hover { color: var(--crimson); }
+
+        .story-content-end { padding-bottom: 80px; }
+    </style>
+</head>
+<body>
+    <main>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="breadcrumb">
+                <a href="index.html">Home</a>
+                <i class="fas fa-chevron-right"></i>
+                <a href="stories.html">Volunteer Stories</a>
+                <i class="fas fa-chevron-right"></i>
+                <span class="current">Cosmas Msoka</span>
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="story-hero">
+            <img src="{% static 'myapp/img/WAX_7020_BinSeif_Original.jpg.jpeg' %}" alt="Cosmas Msoka">
+            <div class="hero-content">
+                <span class="tag-badge">Youth Leadership</span>
+                <h1>Cosmas Msoka</h1>
+                <p class="hero-meta">Digital Marketing Strategist &middot; Communications Specialist &middot; Youth Advocate &middot; Storyteller</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <article class="story-content narrow story-content-end">
+
+                <div class="qa-block">
+                    <div class="qa-question"><span class="q-mark">&ldquo;</span>Name, profession, and YVF cohort:</div>
+                    <p class="qa-answer">My name is Cosmas Msoka. I am a Digital Marketing Strategist, Communications Specialist, Youth Advocate, and Storyteller. I was a participant in the Youth Volunteer Forum (YVF) Cohort 3 and later had the privilege of serving as the Head of Communications for Cohort 4.</p>
+                </div>
+
+                <div class="qa-block">
+                    <div class="qa-question"><span class="q-mark">&ldquo;</span>How has YVF impacted your journey?</div>
+                    <p class="qa-answer">YVF was one of the defining moments in my leadership journey. The training in digital marketing, personal branding, leadership, communication, and teamwork gave me practical skills that I continue to apply today. It helped me become more intentional about building my personal brand and using communication as a tool for advocacy and social impact. Since then, I have grown into different leadership and communication roles, including serving as the Communications Lead for Vijana4Food under the Tanzania Youth Alliance for Food Systems, working with Dialogue Earth as an Environmental Journalist, and being part of the USAID Young African Leaders Initiative (YALI) network. I have also continued mentoring young people in advocacy, career development, and personal branding. Returning to YVF as the Head of Communications for Cohort 4 was a full-circle moment that reminded me of the power of volunteerism and the importance of giving back to the next generation of leaders.</p>
+                </div>
+
+                <div class="qa-block">
+                    <div class="qa-question"><span class="q-mark">&ldquo;</span>What's one memorable lesson or experience from YVF?</div>
+                    <p class="qa-answer">One lesson that has stayed with me is that volunteering is not just about giving your time — it is about discovering your potential, building meaningful connections, and creating opportunities to serve others. I still remember the inspiring sessions on leadership, digital marketing, and personal branding that challenged me to think beyond being a participant and become a changemaker. Those experiences shaped my confidence, strengthened my communication skills, and continue to influence how I lead, advocate, and create impact in my community.</p>
+                </div>
+
+                <div class="thank-you-note">
+                    <p>Thank you, Zanchangemakers, for building a platform that empowers young people to become leaders and changemakers. Happy 5 years of YVF! 🎉🌍</p>
+                </div>
+
+                <div class="author-card">
+                    <div class="author-avatar">
+                        <img src="{% static 'myapp/img/WAX_7020_BinSeif_Original.jpg.jpeg' %}" alt="Cosmas Msoka">
+                    </div>
+                    <div>
+                        <div class="author-name">Cosmas Msoka</div>
+                        <div class="author-role">YVF Cohort 3 &middot; Head of Communications, Cohort 4</div>
+                    </div>
+                </div>
+
+                <a href="{% url 'stories' %}" class="back-link"><i class="fas fa-arrow-left"></i> Back to All Stories</a>
+
+            </article>
+        </div>
+
+    </main>
+
+    <script src="{% static 'myapp/scripts/shared.js' %}"></script>
+    <script src="{% static 'myapp/scripts/scripts.js' %}"></script>
+</body>
+</html>

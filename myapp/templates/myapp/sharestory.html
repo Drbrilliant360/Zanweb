@@ -1,0 +1,405 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/css/shared.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/css/style.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/png" href="{% static 'myapp/img/head logo.png' %}" />
+
+    <title>Share Your Story — Volunteer Stories</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1C2E5E;
+            --navy-deep: #0F1A36;
+            --crimson: #A51C30;
+            --gold: #F5C300;
+            --ink: #0D1525;
+            --ink2: #4A5879;
+            --bg: #ffffff;
+            --bg2: #F5F7FC;
+            --white: #ffffff;
+            --border: rgba(28, 46, 94, 0.09);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg2);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .narrow { max-width: 700px; margin: 0 auto; }
+
+        /* Breadcrumb */
+        .breadcrumb-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 20px;
+        }
+        .breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.82rem;
+            color: var(--ink2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .breadcrumb a { color: var(--ink2); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--crimson); }
+        .breadcrumb .current { color: var(--navy-deep); font-weight: 600; }
+        .breadcrumb i { font-size: 0.65rem; opacity: 0.6; }
+
+        /* Hero */
+        .share-hero {
+            background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 100%);
+            padding: 80px 20px 64px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .share-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(245,195,0,0.14) 0%, rgba(245,195,0,0) 55%);
+            pointer-events: none;
+        }
+        .eyebrow { font-size: 0.75rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; position: relative; z-index: 1; }
+        .section-h { font-family: 'Barlow Condensed', sans-serif; font-size: 3rem; font-weight: 900; color: var(--white); text-transform: uppercase; line-height: 1; position: relative; z-index: 1; }
+        .section-sub { max-width: 560px; margin: 16px auto 0; font-size: 0.98rem; color: rgba(255,255,255,0.78); position: relative; z-index: 1; }
+
+        /* Form section */
+        .form-wrap { padding: 60px 20px 90px; }
+
+        .form-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 44px 40px;
+            box-shadow: 0 4px 24px rgba(15, 26, 54, 0.06);
+        }
+        @media(max-width: 600px) {
+            .form-card { padding: 32px 22px; }
+        }
+
+        fieldset { border: none; margin-bottom: 34px; }
+        fieldset:last-of-type { margin-bottom: 0; }
+
+        legend {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--navy-deep);
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg2);
+            width: 100%;
+        }
+
+        .field { margin-bottom: 20px; }
+        .field:last-child { margin-bottom: 0; }
+
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--navy-deep);
+            margin-bottom: 8px;
+        }
+        .field .hint {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: var(--ink2);
+            margin-top: 6px;
+        }
+
+        .field input[type="text"],
+        .field input[type="email"],
+        .field select,
+        .field textarea {
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            color: var(--ink);
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .field input[type="text"]:focus,
+        .field input[type="email"]:focus,
+        .field select:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: var(--navy);
+            background: var(--white);
+        }
+        .field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        @media(max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+        /* Photo upload */
+        .upload-box {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 28px 20px;
+            text-align: center;
+            background: var(--bg2);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .upload-box:hover { border-color: var(--navy); }
+        .upload-box i { font-size: 1.6rem; color: var(--navy); margin-bottom: 10px; display: block; }
+        .upload-box .upload-text { font-size: 0.85rem; color: var(--ink2); }
+        .upload-box .upload-text strong { color: var(--navy); }
+        .upload-box input[type="file"] { display: none; }
+        .file-name { margin-top: 10px; font-size: 0.8rem; color: var(--navy-deep); font-weight: 600; display: none; }
+
+        /* Consent */
+        .consent-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--ink2);
+        }
+        .consent-field input { margin-top: 4px; flex-shrink: 0; }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--crimson);
+            color: var(--white);
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 16px 30px;
+            border-radius: 50px;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(165, 28, 48, 0.22);
+            transition: background 0.25s ease, transform 0.25s ease;
+        }
+        .btn-submit:hover { background: #8A1728; transform: translateY(-2px); }
+
+        .form-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--ink2);
+            margin-top: 16px;
+        }
+
+        /* Success state */
+        .success-card {
+            display: none;
+            text-align: center;
+            padding: 20px 10px;
+        }
+        .success-card.show { display: block; }
+        .success-card i {
+            font-size: 2.6rem;
+            color: var(--crimson);
+            margin-bottom: 18px;
+            display: block;
+        }
+        .success-card h3 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--navy-deep);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .success-card p { color: var(--ink2); max-width: 440px; margin: 0 auto; }
+        .form-card.hide-form { display: none; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--navy);
+            text-decoration: none;
+            margin-top: 26px;
+        }
+        .back-link:hover { color: var(--crimson); }
+    </style>
+</head>
+<body>
+    <main>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-bar">
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">Home</a>
+                <i class="fas fa-chevron-right"></i>
+                <a href="{% url 'stories' %}">Volunteer Stories</a>
+                <i class="fas fa-chevron-right"></i>
+                <span class="current">Share Your Story</span>
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="share-hero">
+            <p class="eyebrow">Real People, Real Impact</p>
+            <h2 class="section-h">Share Your Story</h2>
+            <p class="section-sub">Volunteered with us and want the next changemaker to hear about it? Tell us your journey and we may feature it right here.</p>
+        </div>
+
+        <div class="container">
+            <div class="form-wrap narrow">
+
+                <div class="form-card" id="storyForm">
+                    <form id="shareForm" novalidate>
+
+                        <fieldset>
+                            <legend>About You</legend>
+
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="fullName">Full Name</label>
+                                    <input type="text" id="fullName" name="fullName" required>
+                                </div>
+                                <div class="field">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                            </div>
+
+                            <div class="field-row">
+                                <div class="field">
+                                    <label for="profession">Profession / Title</label>
+                                    <input type="text" id="profession" name="profession" placeholder="e.g. Digital Marketing Strategist">
+                                </div>
+                                <div class="field">
+                                    <label for="cohort">YVF Cohort</label>
+                                    <select id="cohort" name="cohort" required>
+                                        <option value="" disabled selected>Select your cohort</option>
+                                        <option value="Cohort 1">Cohort 1</option>
+                                        <option value="Cohort 2">Cohort 2</option>
+                                        <option value="Cohort 3">Cohort 3</option>
+                                        <option value="Cohort 4">Cohort 4</option>
+                                        <option value="Cohort 5">Cohort 5</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="category">Story Category</label>
+                                <select id="category" name="category" required>
+                                    <option value="" disabled selected>Choose the closest fit</option>
+                                    <option value="Youth Leadership">Youth Leadership</option>
+                                    <option value="Community Outreach">Community Outreach</option>
+                                    <option value="Digital Skills">Digital Skills</option>
+                                    <option value="Environmental Action">Environmental Action</option>
+                                    <option value="Health & Wellness">Health &amp; Wellness</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label for="photo">Your Photo</label>
+                                <label class="upload-box" for="photo">
+                                    <i class="fas fa-cloud-arrow-up"></i>
+                                    <span class="upload-text"><strong>Click to upload</strong> a headshot or photo of you volunteering</span>
+                                    <input type="file" id="photo" name="photo" accept="image/*">
+                                </label>
+                                <span class="file-name" id="fileName"></span>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Your Story</legend>
+
+                            <div class="field">
+                                <label for="impact">How has YVF impacted your journey?</label>
+                                <textarea id="impact" name="impact" required placeholder="Tell us how the program shaped your path — skills gained, roles it led to, how you've grown since."></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label for="lesson">What's one memorable lesson or experience from YVF?</label>
+                                <textarea id="lesson" name="lesson" required placeholder="A specific moment, session, or lesson that stayed with you."></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label for="message">Anything else you'd like to add? <span class="hint">Optional — a closing thought, thank-you, or message to future volunteers.</span></label>
+                                <textarea id="message" name="message"></textarea>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <div class="field consent-field">
+                                <input type="checkbox" id="consent" name="consent" required>
+                                <label for="consent" style="margin: 0; font-weight: 400;">I agree that Zanchangemakers may publish my story, name, and photo on the Volunteer Stories page and related channels.</label>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" class="btn-submit">Submit Your Story <i class="fas fa-arrow-right"></i></button>
+                        <p class="form-note">We read every submission — expect to hear from us within a couple of weeks.</p>
+                    </form>
+                </div>
+
+                <div class="success-card" id="successCard">
+                    <i class="fas fa-circle-check"></i>
+                    <h3>Thank You!</h3>
+                    <p>Your story has been submitted. Our team will review it and reach out if it's selected to be featured on the Volunteer Stories page.</p>
+                    <a href="{% url 'stories' %}" class="back-link"><i class="fas fa-arrow-left"></i> Back to All Stories</a>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script src="{% static 'myapp/scripts/shared.js' %}"></script>
+    <script src="{% static 'myapp/scripts/scripts.js' %}"></script>
+    <script>
+        (function () {
+            const photoInput = document.getElementById('photo');
+            const fileName = document.getElementById('fileName');
+            photoInput.addEventListener('change', () => {
+                if (photoInput.files.length) {
+                    fileName.textContent = photoInput.files[0].name;
+                    fileName.style.display = 'block';
+                } else {
+                    fileName.style.display = 'none';
+                }
+            });
+
+            const form = document.getElementById('shareForm');
+            const formCard = document.getElementById('storyForm');
+            const successCard = document.getElementById('successCard');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                // TODO: wire this up to your form backend / email service.
+                formCard.classList.add('hide-form');
+                successCard.classList.add('show');
+                window.scrollTo({ top: successCard.offsetTop - 100, behavior: 'smooth' });
+            });
+        })();
+    </script>
+</body>
+</html>
